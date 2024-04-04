@@ -4,7 +4,7 @@ import com.teragrep.cfe_39.avro.SyslogRecord;
 import com.teragrep.cfe_39.consumers.kafka.DatabaseOutput;
 import com.teragrep.cfe_39.consumers.kafka.HDFSWriter;
 import com.teragrep.cfe_39.consumers.kafka.KafkaController;
-import com.teragrep.cfe_39.consumers.kafka.RecordOffsetObject;
+import com.teragrep.cfe_39.consumers.kafka.RecordOffset;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.io.DatumReader;
@@ -136,7 +136,7 @@ public class HdfsTest {
                 }
 
                 assert lastRecord != null;
-                RecordOffsetObject lastObject = new RecordOffsetObject("testConsumerTopic", Integer.parseInt(lastRecord.getPartition().toString()), lastRecord.getOffset(), null); // Fetch input parameters from the lastRecord SyslogRecord-object.
+                RecordOffset lastObject = new RecordOffset("testConsumerTopic", Integer.parseInt(lastRecord.getPartition().toString()), lastRecord.getOffset(), null); // Fetch input parameters from the lastRecord SyslogRecord-object.
                 LOGGER.debug("\n"+"Last record in the " + syslogFile.getName() + " file:" + "\ntopic: " + lastObject.getTopic() + "\npartition: " + lastObject.getPartition() + "\noffset: " + lastObject.getOffset());
                 try (HDFSWriter writer = new HDFSWriter(config, lastObject)) {
                     writer.commit(syslogFile, -1L); // commits the final AVRO-file to HDFS.
@@ -179,22 +179,22 @@ public class HdfsTest {
         //Get the filesystem - HDFS
         FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
 
-        //==== Create folder if not exists
+        //==== Create directory if not exists
         Path workingDir=fs.getWorkingDirectory();
-        Path newFolderPath= new Path(path);
-        if(!fs.exists(newFolderPath)) {
+        Path newDirectoryPath= new Path(path);
+        if(!fs.exists(newDirectoryPath)) {
             // Create new Directory
-            fs.mkdirs(newFolderPath);
+            fs.mkdirs(newDirectoryPath);
             // logger.info("Path "+path+" created.");
         }
 
         // This is the HDFS write path for the files:
-        // Path hdfswritepath = new Path(newFolderPath + "/" + fileName); where newFolderPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
+        // Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); where newDirectoryPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
 
         //==== Read files
         // logger.info("Read file into hdfs");
         //Create a path
-        Path hdfsreadpath = new Path(newFolderPath + "/" + fileName); // The path should be the same that was used in writing the file to HDFS.
+        Path hdfsreadpath = new Path(newDirectoryPath + "/" + fileName); // The path should be the same that was used in writing the file to HDFS.
         //Init input stream
         FSDataInputStream inputStream = fs.open(hdfsreadpath);
         //The data is in AVRO-format, so it can't be read as a string.

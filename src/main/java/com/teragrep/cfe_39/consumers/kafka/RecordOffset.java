@@ -14,32 +14,46 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 package com.teragrep.cfe_39.consumers.kafka;
 
-public class NullOffsetObject extends OffsetObject{
+// This is the class for handling the Kafka record topic/partition/offset data that are required for HDFS storage.
+public class RecordOffset extends Offset{
+
+    public RecordOffset(
+            String topic,
+            int partition,
+            long offset,
+            byte[] record
+    ) {
+        this.topic = topic;
+        this.partition = partition;
+        this.offset = offset;
+        this.record = record;
+    }
 
     @Override
     public boolean isNull() {
-        return true;
+        return false;
     }
 
     @Override
     public String getTopic() {
-        return "Not available";
+        return topic;
     }
 
     @Override
     public Integer getPartition() {
-        return 0;
+        return partition;
     }
 
     @Override
     public Long getOffset() {
-        return 0L;
+        return offset;
     }
 
     @Override
     public byte[] getRecord() {
-        return new byte[0];
+        return record;
     }
 }

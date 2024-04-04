@@ -139,7 +139,7 @@ public class KafkaController {
             // DatabaseOutput handles transferring the consumed data to storage (S3, mariadb, HDFS, etc.)
             // Kafka offset tracking must be included here.
             // Topic is figured out in topicScan so the offsets for the topic should be figured out here.
-            Consumer<List<RecordOffsetObject>> output = new DatabaseOutput(
+            Consumer<List<RecordOffset>> output = new DatabaseOutput(
                     config, // Configuration settings
                     topic, // String, the name of the topic
                     durationStatistics, // RuntimeStatistics object from metrics

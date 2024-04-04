@@ -29,10 +29,10 @@ public class KafkaReader implements AutoCloseable {
     final Logger LOGGER = LoggerFactory.getLogger(KafkaReader.class);
     private Iterator<ConsumerRecord<byte[], byte[]>> kafkaRecordsIterator = Collections.emptyIterator();
     private final Consumer<byte[], byte[]> kafkaConsumer;
-    private final java.util.function.Consumer<List<RecordOffsetObject>> callbackFunction;
+    private final java.util.function.Consumer<List<RecordOffset>> callbackFunction;
 
     public KafkaReader(
-            Consumer<byte[], byte[]> kafkaConsumer, java.util.function.Consumer<List<RecordOffsetObject>> callbackFunction) {
+            Consumer<byte[], byte[]> kafkaConsumer, java.util.function.Consumer<List<RecordOffset>> callbackFunction) {
         this.kafkaConsumer = kafkaConsumer;
         this.callbackFunction = callbackFunction;
     }
@@ -48,11 +48,11 @@ public class KafkaReader implements AutoCloseable {
             kafkaRecordsIterator = kafkaRecords.iterator();
         }
 
-        List<RecordOffsetObject> recordOffsetObjectList = new ArrayList<>();
+        List<RecordOffset> recordOffsetObjectList = new ArrayList<>();
         while (kafkaRecordsIterator.hasNext()) {
             ConsumerRecord<byte[], byte[]> record = kafkaRecordsIterator.next();
             LOGGER.debug("adding from offset: " + record.offset());
-            recordOffsetObjectList.add(new RecordOffsetObject(record.topic(), record.partition(), record.offset(), record.value()));
+            recordOffsetObjectList.add(new RecordOffset(record.topic(), record.partition(), record.offset(), record.value()));
 
 /*            // SKIPPING IDEMPOTENT CONSUMER IMPLEMENTATION FOR NOW!
             boolean checkStuff = checkIfProcessed(record.topic(), record.partition(), record.offset()); // Create checkIfProcessed method. Checks if the record has already been processed and stored in HDFS.

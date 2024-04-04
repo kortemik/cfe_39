@@ -32,7 +32,7 @@ import java.io.IOException;
 // This class should be compiled into a jar-file that is then sent to the hadoop cluster for running the job when needed. Maven should be configured to do the jar-packaging etc.
 /*
 The records are stored inside files that are 64MB in size and named depending on which Kafka partition offset the last stored record belongs to.
-In other words the files are inside topic_name-folder and there are at least one file per partition, depending on the load size of records that are fetched from Kafka topics.
+In other words the files are inside topic_name-directory and there are at least one file per partition, depending on the load size of records that are fetched from Kafka topics.
 
 The AVRO-files that hold the records can house over 240,000 records each (at 64MB), but that is just an estimate because the record sizes vary widely.
 This means that the partition offsets are not guaranteed to be same for all the files in a topic. In other words the same number of records could be distributed between 3 files on one partition and 2 files on another partition because of the different individual record sizes.
@@ -52,9 +52,9 @@ The filtering method is most likely the least resource intensive method as it ca
 But in any case the pruning should include deleting AVRO-files that hold only outdated records that should be pruned. The handling of the leftover garbage records can be handled later in the MapReduce of the datasource component queries.
 */
 
-// The main function that will call for pruning will know the topic name (aka. folder path). The pruning will be done in folder basis, aka. in topic basis, so tracking the topic name is not important for the MapReduce as the input path already contains the topic name.
+// The main function that will call for pruning will know the topic name (aka. directory path). The pruning will be done in directory basis, aka. in topic basis, so tracking the topic name is not important for the MapReduce as the input path already contains the topic name.
 // Instead, the partition and offset values together with timestamp are important for pruning. The MapReduce function should create a list of key-value pairs where key is the partition+offset and value is the timestamp, where timestamp is smaller than the cutoff_epoch defined by input arguments.
-// The pruning of old records can be called in KafkaController.java row 112, using the activeTopics list as a input argument for topic names. This way the records are pruned every time new ones are added. Make sure there are no concurrency issues with the HDFS writer. Most likely there is a need for pruning-controller class that will manage the folder/topic scanning etc.
+// The pruning of old records can be called in KafkaController.java row 112, using the activeTopics list as a input argument for topic names. This way the records are pruned every time new ones are added. Make sure there are no concurrency issues with the HDFS writer. Most likely there is a need for pruning-controller class that will manage the directory/topic scanning etc.
 public class PruneTest extends Configured implements Tool {
     static long cutoff_epoch;
     // TimestampMapper takes a SyslogRecord as input and outputs a key-value pair of record partition+"."+offset and timestamp of the record.
@@ -105,7 +105,7 @@ public class PruneTest extends Configured implements Tool {
         Job job = Job.getInstance(conf, "timestamp prune");
         job.setJarByClass(PruneTest.class);
 
-        SequenceFileInputFormat.setInputPaths(job, new Path(args[0])); // The input path should be the folder where the AVRO-files are held. setInputPaths can take either folder or file as input, not sure if using folder has the same effect as having a list of files.
+        SequenceFileInputFormat.setInputPaths(job, new Path(args[0])); // The input path should be the directory where the AVRO-files are held. setInputPaths can take either directory or file as input, not sure if using directory has the same effect as having a list of files.
         FileOutputFormat.setOutputPath(job, new Path(args[1])); // Output path is where the results of the MapReduce are stored.
 
         job.setInputFormatClass(AvroKeyInputFormat.class);
@@ -122,9 +122,9 @@ public class PruneTest extends Configured implements Tool {
         return (job.waitForCompletion(true) ? 0 : 1);
     }
 
-    // Set input folder to be the topic folder.
+    // Set input directory to be the topic directory.
     public static void main(String[] args) throws Exception {
-        int res = ToolRunner.run(new PruneTest(), args); // arg1 is <input path> and arg2 is <output path>, output path should be a new HDFS folder that does not exist and input path should be the HDFS folder with AVRO-files that we have generated in tests.
+        int res = ToolRunner.run(new PruneTest(), args); // arg1 is <input path> and arg2 is <output path>, output path should be a new HDFS directory that does not exist and input path should be the HDFS directory with AVRO-files that we have generated in tests.
         System.exit(res);
     }
 }

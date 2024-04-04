@@ -31,13 +31,13 @@ public class ReadCoordinator implements Runnable {
 
     private final String queueTopic;
     private final Properties readerKafkaProperties;
-    private final Consumer<List<RecordOffsetObject>> callbackFunction;
+    private final Consumer<List<RecordOffset>> callbackFunction;
     private boolean run = true;
 
     public ReadCoordinator(
             String queueTopic,
             Properties readerKafkaProperties,
-            Consumer<List<RecordOffsetObject>> callbackFunction)
+            Consumer<List<RecordOffset>> callbackFunction)
     {
         this.queueTopic = queueTopic;
         this.readerKafkaProperties = readerKafkaProperties;
@@ -46,7 +46,7 @@ public class ReadCoordinator implements Runnable {
 
     private KafkaReader createKafkaReader(Properties readerKafkaProperties,
                                           String topic,
-                                          Consumer<List<RecordOffsetObject>> callbackFunction,
+                                          Consumer<List<RecordOffset>> callbackFunction,
                                           boolean useMockKafkaConsumer) {
 
         org.apache.kafka.clients.consumer.Consumer<byte[], byte[]> kafkaConsumer;

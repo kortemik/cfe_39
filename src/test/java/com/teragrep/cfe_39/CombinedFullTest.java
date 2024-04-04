@@ -82,7 +82,6 @@ public class CombinedFullTest {
         }
 
     }
-
     @Test
     public void hdfsPruneTest() throws IOException {
         // Check that the files were properly written to HDFS with a read test.
@@ -102,12 +101,12 @@ public class CombinedFullTest {
         //Get the filesystem - HDFS
         FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
 
-        //==== Create folder if not exists
+        //==== Create directory if not exists
         Path workingDir=fs.getWorkingDirectory();
-        Path newFolderPath= new Path(path);
-        if(!fs.exists(newFolderPath)) {
+        Path newDirectoryPath= new Path(path);
+        if(!fs.exists(newDirectoryPath)) {
             // Create new Directory
-            fs.mkdirs(newFolderPath);
+            fs.mkdirs(newDirectoryPath);
             LOGGER.info("Path {} created.", path);
         }
 
@@ -122,7 +121,7 @@ public class CombinedFullTest {
         // Another method for pruning aside using avro-mapred is to use modification timestamp of the avro-file stored in HDFS:
         // fs.setTimes(new Path(path+"/"+0.8), Long.parseUnsignedLong("1675930598000"), -1);
         // where mtime is modification time and atime is access time. -1 as input parameter leaves the original atime/mtime value as is.
-        FileStatus[] fileStatuses = fs.listStatus(new Path(newFolderPath + "/"));
+        FileStatus[] fileStatuses = fs.listStatus(new Path(newDirectoryPath + "/"));
         long count = Arrays.stream(fileStatuses).count();
         if (count != 0) {
             if (config.getPruneOffset() != 157784760000L) {
@@ -167,17 +166,17 @@ public class CombinedFullTest {
         //Get the filesystem - HDFS
         FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
 
-        //==== Create folder if not exists
+        //==== Create directory if not exists
         Path workingDir=fs.getWorkingDirectory();
-        Path newFolderPath= new Path(path);
-        if(!fs.exists(newFolderPath)) {
+        Path newDirectoryPath= new Path(path);
+        if(!fs.exists(newDirectoryPath)) {
             // Create new Directory
-            fs.mkdirs(newFolderPath);
+            fs.mkdirs(newDirectoryPath);
             LOGGER.info("Path {} created.", path);
         }
 
         // This is the HDFS write path for the files:
-        // Path hdfswritepath = new Path(newFolderPath + "/" + fileName); where newFolderPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
+        // Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); where newDirectoryPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
 
         // Create the list of files to read from HDFS. Test setup is created so each of the 0-9 partitions will have 2 files with offsets of 8 and 13.
         List<String> filenameList = new ArrayList<>();
@@ -191,7 +190,7 @@ public class CombinedFullTest {
             //==== Read files
             LOGGER.info("Read file into hdfs");
             //Create a path
-            Path hdfsreadpath = new Path(newFolderPath + "/" + fileName); // The path should be the same that was used in writing the file to HDFS.
+            Path hdfsreadpath = new Path(newDirectoryPath + "/" + fileName); // The path should be the same that was used in writing the file to HDFS.
             //Init input stream
             FSDataInputStream inputStream = fs.open(hdfsreadpath);
             //The data is in AVRO-format, so it can't be read as a string.

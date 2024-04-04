@@ -16,7 +16,7 @@
  */
 package com.teragrep.cfe_39.consumers.kafka;
 
-public abstract class OffsetObject {
+public abstract class Offset {
     protected String topic;
     protected Integer partition;
     protected Long offset;

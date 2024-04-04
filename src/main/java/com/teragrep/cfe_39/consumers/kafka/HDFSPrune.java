@@ -37,7 +37,7 @@ public class HDFSPrune {
     private static final Logger LOGGER = LoggerFactory.getLogger(HDFSPrune.class);
     private Config config;
     private final FileSystem fs;
-    private Path newFolderPath;
+    private Path newDirectoryPath;
     private long cutOffEpoch;
     private final boolean useMockKafkaConsumer; // test-mode switch
 
@@ -66,12 +66,12 @@ public class HDFSPrune {
             //Get the filesystem - HDFS
             fs = FileSystem.get(URI.create(hdfsuri), conf);
 
-            //==== Create folder if not exists
+            //==== Create directory if not exists
             Path workingDir = fs.getWorkingDirectory();
-            newFolderPath = new Path(path);
-            if (!fs.exists(newFolderPath)) {
+            newDirectoryPath = new Path(path);
+            if (!fs.exists(newDirectoryPath)) {
                 // Create new Directory
-                fs.mkdirs(newFolderPath);
+                fs.mkdirs(newDirectoryPath);
                 LOGGER.info("Path {} created.", path);
             }
         }else {
@@ -109,12 +109,12 @@ public class HDFSPrune {
             // filesystem for HDFS access is set here
             fs = FileSystem.get(conf);
 
-            //==== Create folder if not exists
+            //==== Create directory if not exists
             Path workingDir = fs.getWorkingDirectory();
-            newFolderPath = new Path(path);
-            if (!fs.exists(newFolderPath)) {
+            newDirectoryPath = new Path(path);
+            if (!fs.exists(newDirectoryPath)) {
                 // Create new Directory
-                fs.mkdirs(newFolderPath);
+                fs.mkdirs(newDirectoryPath);
                 LOGGER.info("Path {} created.", path);
             }
         }
@@ -124,7 +124,7 @@ public class HDFSPrune {
 
     public void prune() throws IOException {
         // Fetch the filestatuses of HDFS files.
-        FileStatus[] fileStatuses = fs.listStatus(new Path(newFolderPath + "/"));
+        FileStatus[] fileStatuses = fs.listStatus(new Path(newDirectoryPath + "/"));
         if (fileStatuses.length > 0) {
         for (FileStatus a : fileStatuses) {
             // Delete old files
@@ -134,7 +134,7 @@ public class HDFSPrune {
             }
         }
         } else {
-            LOGGER.info("No files found in folder {}", new Path(newFolderPath + "/"));
+            LOGGER.info("No files found in directory {}", new Path(newDirectoryPath + "/"));
         }
     }
 }

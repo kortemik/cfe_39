@@ -45,7 +45,7 @@ public class HDFSWriter implements AutoCloseable{
     // Create files as whole but stream the contents into them. Avro files 'flush' must be called as few times as possible. Check memory usage impact
     // Later make sure to check the avro file flush issue where the file size is all over the place if flush is not used after every append to the file.
 
-    public HDFSWriter(Config config, RecordOffsetObject lastObject) throws IOException {
+    public HDFSWriter(Config config, RecordOffset lastObject) throws IOException {
 
         // Check for testmode from config.
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
@@ -58,7 +58,7 @@ public class HDFSWriter implements AutoCloseable{
             hdfsuri = config.getHdfsuri(); // Get from config.
 
             // The filepath should be something like hdfs:///opt/teragrep/cfe_39/srv/topic_name/0.12345 where 12345 is offset and 0 the partition.
-            // In other words the folder named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
+            // In other words the directory named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
             // These values should be fetched from config and other input parameters (topic+partition+offset).
             path = config.getHdfsPath()+"/"+lastObject.topic;
             fileName = lastObject.partition+"."+lastObject.offset; // filename should be constructed from partition and offset.
@@ -86,9 +86,9 @@ public class HDFSWriter implements AutoCloseable{
             hdfsuri = config.getHdfsuri(); // Get from config.
 
             // The filepath should be something like hdfs:///opt/teragrep/cfe_39/srv/topic_name/0.12345 where 12345 is offset and 0 the partition.
-            // In other words the folder named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
+            // In other words the directory named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
             // The values are fetched from config and input parameters (topic+partition+offset).
-            path = config.getHdfsPath() + "/" + lastObject.topic; // folder path is constructed from HdfsPath and topic name.
+            path = config.getHdfsPath() + "/" + lastObject.topic; // directory path is constructed from HdfsPath and topic name.
             fileName = lastObject.partition + "." + lastObject.offset; // filename should be constructed from partition and offset.
 
 
@@ -134,20 +134,20 @@ public class HDFSWriter implements AutoCloseable{
             // CODE FOR TEST-MODE GOES HERE!
             //Get the filesystem - HDFS
             try {
-                //==== Create folder if not exists
+                //==== Create directory if not exists
                 Path workingDir = fs.getWorkingDirectory();
                 // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
-                Path newFolderPath = new Path(path);
-                if (!fs.exists(newFolderPath)) {
+                Path newDirectoryPath = new Path(path);
+                if (!fs.exists(newDirectoryPath)) {
                     // Create new Directory
-                    fs.mkdirs(newFolderPath);
+                    fs.mkdirs(newDirectoryPath);
                     LOGGER.debug("Path {} created.", path);
                 }
 
                 //==== Write file
                 LOGGER.debug("Begin Write file into hdfs");
                 //Create a path
-                Path hdfswritepath = new Path(newFolderPath + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
+                Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
                 if (fs.exists(hdfswritepath)) {
                     throw new RuntimeException("File " + fileName + " already exists");
                 }
@@ -179,20 +179,20 @@ public class HDFSWriter implements AutoCloseable{
         }else {
             //Get the filesystem - HDFS
             try {
-                //==== Create folder if not exists
+                //==== Create directory if not exists
                 Path workingDir = fs.getWorkingDirectory();
                 // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
-                Path newFolderPath = new Path(path);
-                if (!fs.exists(newFolderPath)) {
+                Path newDirectoryPath = new Path(path);
+                if (!fs.exists(newDirectoryPath)) {
                     // Create new Directory
-                    fs.mkdirs(newFolderPath);
+                    fs.mkdirs(newDirectoryPath);
                     LOGGER.debug("Path {} created.", path);
                 }
 
                 //==== Write file
                 LOGGER.debug("Begin Write file into hdfs");
                 //Create a path
-                Path hdfswritepath = new Path(newFolderPath + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
+                Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
                 if (fs.exists(hdfswritepath)) {
                     throw new RuntimeException("File " + fileName + " already exists");
                 }
