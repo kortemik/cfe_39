@@ -18,6 +18,7 @@
 package com.teragrep.cfe_39.consumers.kafka;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,15 +34,18 @@ public class ReadCoordinator implements Runnable {
     private final Properties readerKafkaProperties;
     private final Consumer<List<RecordOffset>> callbackFunction;
     private boolean run = true;
+    private final Map<TopicPartition, Long> hdfsStartOffsets;
 
     public ReadCoordinator(
             String queueTopic,
             Properties readerKafkaProperties,
-            Consumer<List<RecordOffset>> callbackFunction)
+            Consumer<List<RecordOffset>> callbackFunction,
+            Map<TopicPartition, Long> hdfsStartOffsets)
     {
         this.queueTopic = queueTopic;
         this.readerKafkaProperties = readerKafkaProperties;
         this.callbackFunction = callbackFunction;
+        this.hdfsStartOffsets = hdfsStartOffsets;
     }
 
     private KafkaReader createKafkaReader(Properties readerKafkaProperties,
@@ -60,6 +64,17 @@ public class ReadCoordinator implements Runnable {
         } else { // Test mode is off, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
             kafkaConsumer = new KafkaConsumer<>(readerKafkaProperties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
             kafkaConsumer.subscribe(Collections.singletonList(topic));
+        }
+
+        Set<TopicPartition> assignment = kafkaConsumer.assignment();
+        // Seek the consumer to topic partition offset defined by the latest record that is committed to HDFS.
+        for (TopicPartition topicPartition : assignment) {
+            if (hdfsStartOffsets.containsKey(topicPartition)) {
+                long position = kafkaConsumer.position(topicPartition);
+                if (position < hdfsStartOffsets.get(topicPartition)) {
+                    kafkaConsumer.seek(topicPartition, hdfsStartOffsets.get(topicPartition));
+                }
+            }
         }
 
         return new KafkaReader(kafkaConsumer, callbackFunction);

@@ -88,6 +88,7 @@ public class KafkaController {
         } else {
             this.kafkaConsumer = new KafkaConsumer<>(config.getKafkaConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
         }
+        hdfsStartOffsets = new HashMap<>();
     }
 
     public void run() throws InterruptedException {
@@ -98,12 +99,10 @@ public class KafkaController {
         // register per topic counting
         List<TopicCounter> topicCounters = new CopyOnWriteArrayList<>();
 
-        Map<TopicPartition, Long> topicPartitionStartMap;
-        // Generate offsets of the already committed records for Kafka
+        // Generates offsets of the already committed records for Kafka and passes them to the kafka consumers.
         try (HDFSRead hr = new HDFSRead(config) ) {
-            topicPartitionStartMap = hr.hdfsStartOffsets();
-            LOGGER.info("TESTING topicPartitionStartMap");
-            LOGGER.info(topicPartitionStartMap.toString());
+            hdfsStartOffsets = hr.hdfsStartOffsets();
+            LOGGER.debug("topicPartitionStartMap generated succesfully: {}", hdfsStartOffsets.toString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -162,7 +161,8 @@ public class KafkaController {
             ReadCoordinator readCoordinator = new ReadCoordinator(
                     topic,
                     config.getKafkaConsumerProperties(),
-                    output
+                    output,
+                    hdfsStartOffsets
             );
             Thread readThread = new Thread(null, readCoordinator, topic+testi); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
             threads.add(readThread);

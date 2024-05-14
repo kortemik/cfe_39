@@ -53,14 +53,6 @@ public class KafkaReader implements AutoCloseable {
             ConsumerRecord<byte[], byte[]> record = kafkaRecordsIterator.next();
             LOGGER.debug("adding from offset: " + record.offset());
             recordOffsetObjectList.add(new RecordOffset(record.topic(), record.partition(), record.offset(), record.value()));
-
-/*            // SKIPPING IDEMPOTENT CONSUMER IMPLEMENTATION FOR NOW!
-            boolean checkStuff = checkIfProcessed(record.topic(), record.partition(), record.offset()); // Create checkIfProcessed method. Checks if the record has already been processed and stored in HDFS.
-            if (!checkStuff) {
-                recordOffsetObjectList.add(new RecordOffsetObject(record.topic(), record.partition(), record.offset(), record.value()));
-            }else{
-                // The consumer should update its offsets to effectively mark the message as consumed to ensure it is not redelivered, and no further action takes place.
-            }*/
         }
 
         if (!recordOffsetObjectList.isEmpty()) {
