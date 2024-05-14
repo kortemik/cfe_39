@@ -1,8 +1,7 @@
 package com.teragrep.cfe_39;
 
 import com.teragrep.cfe_39.avro.SyslogRecord;
-import com.teragrep.cfe_39.consumers.kafka.DatabaseOutput;
-import com.teragrep.cfe_39.consumers.kafka.HDFSWriter;
+import com.teragrep.cfe_39.consumers.kafka.HDFSWrite;
 import com.teragrep.cfe_39.consumers.kafka.KafkaController;
 import com.teragrep.cfe_39.consumers.kafka.RecordOffset;
 import org.apache.avro.file.DataFileReader;
@@ -16,10 +15,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +134,7 @@ public class HdfsTest {
                 assert lastRecord != null;
                 RecordOffset lastObject = new RecordOffset("testConsumerTopic", Integer.parseInt(lastRecord.getPartition().toString()), lastRecord.getOffset(), null); // Fetch input parameters from the lastRecord SyslogRecord-object.
                 LOGGER.debug("\n"+"Last record in the " + syslogFile.getName() + " file:" + "\ntopic: " + lastObject.getTopic() + "\npartition: " + lastObject.getPartition() + "\noffset: " + lastObject.getOffset());
-                try (HDFSWriter writer = new HDFSWriter(config, lastObject)) {
+                try (HDFSWrite writer = new HDFSWrite(config, lastObject)) {
                     writer.commit(syslogFile, -1L); // commits the final AVRO-file to HDFS.
                 } catch (IOException e) {
                     throw new RuntimeException(e);

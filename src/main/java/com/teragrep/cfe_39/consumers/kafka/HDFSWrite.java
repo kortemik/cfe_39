@@ -32,9 +32,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
 
-public class HDFSWriter implements AutoCloseable{
+public class HDFSWrite implements AutoCloseable{
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HDFSWriter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HDFSWrite.class);
     private final String fileName;
     private final String path;
     private final FileSystem fs;
@@ -45,7 +45,7 @@ public class HDFSWriter implements AutoCloseable{
     // Create files as whole but stream the contents into them. Avro files 'flush' must be called as few times as possible. Check memory usage impact
     // Later make sure to check the avro file flush issue where the file size is all over the place if flush is not used after every append to the file.
 
-    public HDFSWriter(Config config, RecordOffset lastObject) throws IOException {
+    public HDFSWrite(Config config, RecordOffset lastObject) throws IOException {
 
         // Check for testmode from config.
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
@@ -141,15 +141,17 @@ public class HDFSWriter implements AutoCloseable{
                 if (!fs.exists(newDirectoryPath)) {
                     // Create new Directory
                     fs.mkdirs(newDirectoryPath);
-                    LOGGER.debug("Path {} created.", path);
+                    LOGGER.info("Path {} created.", path);
                 }
 
                 //==== Write file
                 LOGGER.debug("Begin Write file into hdfs");
                 //Create a path
-                Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
+                Path hdfswritepath = new Path(newDirectoryPath.toString() + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
                 if (fs.exists(hdfswritepath)) {
                     throw new RuntimeException("File " + fileName + " already exists");
+                } else {
+                    LOGGER.info("Path {} doesn't exist.", path);
                 }
 
                 /*//Init output stream
@@ -171,7 +173,7 @@ public class HDFSWriter implements AutoCloseable{
                 // updateTimestamp(hdfswritepath, lastEpochMicros);
                 LOGGER.debug("End Write file into hdfs");
                 boolean delete = syslogFile.delete(); // deletes the avro-file from the local disk now that it has been committed to HDFS.
-                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
+                LOGGER.info("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
 
             } catch (IOException e) {
                 throw new RuntimeException(e);

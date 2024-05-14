@@ -115,7 +115,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
 
                 // This part closes the writing of now "complete" AVRO-file and stores the file to HDFS.
                 syslogAvroWriter.close();
-                try (HDFSWriter writer = new HDFSWriter(config, recordOffsetObject)) {
+                try (HDFSWrite writer = new HDFSWrite(config, recordOffsetObject)) {
                     writer.commit(syslogFile, epochMicros_last); // commits the final AVRO-file to HDFS.
                 }
 
@@ -190,7 +190,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                     } else {
                         // Previous partition was fully consumed. Commit file to HDFS and create a new AVRO-file.
                         syslogAvroWriter.close();
-                        HDFSWriter writer = new HDFSWriter(config, (RecordOffset) lastObject);
+                        HDFSWrite writer = new HDFSWrite(config, (RecordOffset) lastObject);
                         writer.commit(syslogFile, epochMicros_last);
 
                         // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the 64M size limit.
@@ -282,7 +282,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         try {
             if (syslogAvroWriter != null && !lastObject.isNull()) {
                 syslogAvroWriter.close();
-                try (HDFSWriter writer = new HDFSWriter(config, (RecordOffset) lastObject)) {
+                try (HDFSWrite writer = new HDFSWrite(config, (RecordOffset) lastObject)) {
                     writer.commit(syslogFile, epochMicros_last); // commits the final AVRO-file to HDFS.
                 }
             }
