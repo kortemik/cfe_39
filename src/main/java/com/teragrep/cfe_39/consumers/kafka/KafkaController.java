@@ -22,6 +22,7 @@ import com.teragrep.cfe_39.metrics.*;
 import com.teragrep.cfe_39.metrics.topic.TopicCounter;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +73,7 @@ public class KafkaController {
     private boolean keepRunning;
     private boolean useMockKafkaConsumer;
     private final int numOfConsumers;
+    private Map<TopicPartition, Long> hdfsStartOffsets;
 
     public KafkaController(Config config) {
         keepRunning = true;
@@ -95,6 +97,16 @@ public class KafkaController {
 
         // register per topic counting
         List<TopicCounter> topicCounters = new CopyOnWriteArrayList<>();
+
+        Map<TopicPartition, Long> topicPartitionStartMap;
+        // Generate offsets of the already committed records for Kafka
+        try (HDFSRead hr = new HDFSRead(config) ) {
+            topicPartitionStartMap = hr.hdfsStartOffsets();
+            LOGGER.info("TESTING topicPartitionStartMap");
+            LOGGER.info(topicPartitionStartMap.toString());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         while (keepRunning) {
             LOGGER.debug("Scanning for threads");
