@@ -138,7 +138,7 @@ public final class HDFSRead implements AutoCloseable {
                     if (!offsets.containsKey(topicPartition)) {
                         offsets.put(topicPartition, Long.parseLong(offset)+1);
                     } else {
-                        if (offsets.get(topicPartition) < Long.parseLong(offset)) {
+                        if (offsets.get(topicPartition) < Long.parseLong(offset)+1) {
                             offsets.replace(topicPartition, Long.parseLong(offset)+1);
                         }
                     }
@@ -160,7 +160,6 @@ public final class HDFSRead implements AutoCloseable {
 
     // try-with-resources handles closing the filesystem automatically.
     public void close() {
-        // FIXME: fs.close() doesn't just affect the current class, it affects all the FileSystem objects that were created using FileSystem.get(URI.create(hdfsuri), conf); in different threads.
         if (fs != null) {
             try {
                 fs.close();
