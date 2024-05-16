@@ -181,8 +181,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 try {
                     if (lastObject.getTopic().equals(recordOffsetObject.getTopic()) & lastObject.getPartition().equals(recordOffsetObject.getPartition())) {
                         // Records left to consume in the current partition.
-                        boolean b = committedToHdfs(syslogAvroWriter.getFileSize(), (RecordOffset) lastObject);
-                        if (b) {
+                        boolean fileCommitted = committedToHdfs(syslogAvroWriter.getFileSize(), (RecordOffset) lastObject);
+                        if (fileCommitted) {
                             LOGGER.debug("Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile.getName(), lastObject.getTopic() + "/" + lastObject.getPartition() + "." + lastObject.getOffset());
                         } else {
                             LOGGER.debug("Target file size not yet reached, continuing writing records to <{}>.", syslogFile.getName());
