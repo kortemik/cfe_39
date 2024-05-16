@@ -102,7 +102,7 @@ public class KafkaController {
         // Generates offsets of the already committed records for Kafka and passes them to the kafka consumers.
         try (HDFSRead hr = new HDFSRead(config) ) {
             hdfsStartOffsets = hr.hdfsStartOffsets();
-            LOGGER.debug("topicPartitionStartMap generated succesfully: {}", hdfsStartOffsets.toString());
+            LOGGER.debug("topicPartitionStartMap generated succesfully: <{}>", hdfsStartOffsets);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -116,7 +116,7 @@ public class KafkaController {
             long topicScanDelay = 30000L;
             Thread.sleep(topicScanDelay);
             for (String topic_name : activeTopics) {
-                LOGGER.info("topic that is being bruned: " + topic_name);
+                LOGGER.info("topic that is being bruned: <{}>", topic_name);
                 if (topic_name != null) {
                     try {
                         HDFSPrune hdfsPrune = new HDFSPrune(config, topic_name);
@@ -207,13 +207,13 @@ public class KafkaController {
 
         // Activate all the found in-active topics, in other words create consumer groups for all of them using the createReader()-function.
         foundPartitions.forEach((k, v) -> {
-            LOGGER.debug("Activating topic <"+k+">");
+            LOGGER.debug("Activating topic <{}>", k);
             try {
                 createReader(k, v, topicCounters);
                 activeTopics.add(k);
                 durationStatistics.addAndGetThreads(1);
             } catch (SQLException sqlException) {
-                LOGGER.error("Topic <"+k+"> not activated due to reader creation error: " + sqlException);
+                LOGGER.error("Topic <{}> not activated due to reader creation error: ", k, sqlException);
             }
         });
         durationStatistics.report();

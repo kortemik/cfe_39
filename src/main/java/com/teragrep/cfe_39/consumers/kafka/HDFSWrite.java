@@ -141,7 +141,7 @@ public class HDFSWrite implements AutoCloseable{
                 if (!fs.exists(newDirectoryPath)) {
                     // Create new Directory
                     fs.mkdirs(newDirectoryPath);
-                    LOGGER.info("Path {} created.", path);
+                    LOGGER.info("Path <{}> created.", path);
                 }
 
                 //==== Write file
@@ -151,7 +151,7 @@ public class HDFSWrite implements AutoCloseable{
                 if (fs.exists(hdfswritepath)) {
                     throw new RuntimeException("File " + fileName + " already exists");
                 } else {
-                    LOGGER.info("Path {} doesn't exist.", path);
+                    LOGGER.info("Path <{}> doesn't exist.", path);
                 }
 
                 /*//Init output stream
@@ -173,7 +173,7 @@ public class HDFSWrite implements AutoCloseable{
                 // updateTimestamp(hdfswritepath, lastEpochMicros);
                 LOGGER.debug("End Write file into hdfs");
                 boolean delete = syslogFile.delete(); // deletes the avro-file from the local disk now that it has been committed to HDFS.
-                LOGGER.info("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
+                LOGGER.info("\nFile committed to HDFS, file writepath should be: <{}>\n", hdfswritepath);
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -188,7 +188,7 @@ public class HDFSWrite implements AutoCloseable{
                 if (!fs.exists(newDirectoryPath)) {
                     // Create new Directory
                     fs.mkdirs(newDirectoryPath);
-                    LOGGER.debug("Path {} created.", path);
+                    LOGGER.debug("Path <{}> created.", path);
                 }
 
                 //==== Write file
@@ -214,7 +214,7 @@ public class HDFSWrite implements AutoCloseable{
                 outputStream.close();
                 LOGGER.debug("End Write file into hdfs");
                 boolean delete = syslogFile.delete(); // deletes the avro-file from the local disk now that it has been committed to HDFS.
-                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
+                LOGGER.debug("\nFile committed to HDFS, file writepath should be: <{}>\n", hdfswritepath);
 
             } catch (IOException e) {
                 throw new RuntimeException(e);

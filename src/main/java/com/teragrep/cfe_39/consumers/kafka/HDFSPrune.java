@@ -72,7 +72,7 @@ public class HDFSPrune {
             if (!fs.exists(newDirectoryPath)) {
                 // Create new Directory
                 fs.mkdirs(newDirectoryPath);
-                LOGGER.info("Path {} created.", path);
+                LOGGER.info("Path <{}> created.", path);
             }
         }else {
             // Code for initializing the class with kerberos.
@@ -115,7 +115,7 @@ public class HDFSPrune {
             if (!fs.exists(newDirectoryPath)) {
                 // Create new Directory
                 fs.mkdirs(newDirectoryPath);
-                LOGGER.info("Path {} created.", path);
+                LOGGER.info("Path <{}> created.", path);
             }
         }
         long pruneOffset = config.getPruneOffset();
@@ -130,11 +130,11 @@ public class HDFSPrune {
             // Delete old files
             if (a.getModificationTime() < cutOffEpoch) {
                 boolean delete = fs.delete(a.getPath(), true);
-                LOGGER.info("Deleted file " + a.getPath());
+                LOGGER.info("Deleted file <{}>", a.getPath());
             }
         }
         } else {
-            LOGGER.info("No files found in directory {}", new Path(newDirectoryPath + "/"));
+            LOGGER.info("No files found in directory <{}>", new Path(newDirectoryPath + "/"));
         }
     }
 }

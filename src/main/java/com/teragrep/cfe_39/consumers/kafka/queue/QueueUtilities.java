@@ -39,7 +39,7 @@ class QueueUtilities {
             } else if (!basicFileAttributes.isRegularFile()) {
                 return false;
             } else {
-                LOGGER.trace("getFileMatcher returning: " + path);
+                LOGGER.trace("getFileMatcher returning: <{}>", path);
                 return true;
             }
         };

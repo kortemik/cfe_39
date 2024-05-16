@@ -57,11 +57,11 @@ public class Config {
     Config() throws IOException {
         Properties properties = new Properties();
         Path configPath = Paths.get(System.getProperty("cfe_30.config.location", System.getProperty("user.dir") + "/etc/application.properties"));
-        LOGGER.info("Loading application config '" + configPath.toAbsolutePath() + "'");
+        LOGGER.info("Loading application config <[{}]>", configPath.toAbsolutePath());
 
         try(InputStream inputStream = Files.newInputStream(configPath)) {
             properties.load(inputStream);
-            LOGGER.debug("Got configuration: " + properties);
+            LOGGER.debug("Got configuration: <{}>", properties);
         }
 
         // HDFS
@@ -103,7 +103,7 @@ public class Config {
 
         // Just for loggers to work
         Path log4j2Config = Paths.get(properties.getProperty("log4j2.configurationFile", System.getProperty("user.dir") + "/etc/log4j2.properties"));
-        LOGGER.info("Loading log4j2 config from '" + log4j2Config.toRealPath() + "'");
+        LOGGER.info("Loading log4j2 config from <[{}]>", log4j2Config.toRealPath());
         Configurator.reconfigure(log4j2Config.toUri());
     }
 

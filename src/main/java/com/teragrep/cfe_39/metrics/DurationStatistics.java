@@ -89,13 +89,7 @@ public class DurationStatistics {
     }
 
     public void log() {
-        LOGGER.info(
-                "## Processed records <" + records.getCount() + "> " +
-                        "and size <" + bytes.getCount() / 1024 + "> KB " +
-                        "during <" + samplingIntervalStat.getCount() + "> ms / " +
-                        "Metrics for the preceding minute: <" + recordsPerSecondStat.getOneMinuteRate() + "> RPS. " +
-                        "<" + bytesPerSecondStat.getOneMinuteRate() / 1024 + "> KB/s "
-        );
+        LOGGER.info("## Processed records <{}> and size <{}> KB during <{}> ms / Metrics for the preceding minute: <{}> RPS. <{}> KB/s ", records.getCount(), bytes.getCount() / 1024, samplingIntervalStat.getCount(), recordsPerSecondStat.getOneMinuteRate(), bytesPerSecondStat.getOneMinuteRate() / 1024);
         samplingIntervalStat.dec(samplingIntervalStat.getCount());
     }
     public long addAndGetThreads(long delta) {

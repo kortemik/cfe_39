@@ -119,13 +119,13 @@ public final class HDFSRead implements AutoCloseable {
         if(!fs.exists(newDirectoryPath)) {
             // Create new Directory
             fs.mkdirs(newDirectoryPath);
-            LOGGER.info("Path {} created.", path);
+            LOGGER.info("Path <{}> created.", path);
         }
 
         FileStatus[] directoryStatuses = fs.listStatus(new Path(path), topicFilter);
         // Get the directory statuses. Each directory represents a Kafka topic.
         if (directoryStatuses.length > 0) {
-            LOGGER.debug("Found {} matching directories", directoryStatuses.length);
+            LOGGER.debug("Found <{}> matching directories", directoryStatuses.length);
             for (FileStatus r : directoryStatuses) {
                 // Get the file statuses that are inside the directories.
                 FileStatus[] fileStatuses = fs.listStatus(r.getPath());

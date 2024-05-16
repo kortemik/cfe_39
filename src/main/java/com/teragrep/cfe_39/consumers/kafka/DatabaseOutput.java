@@ -152,7 +152,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         long thisTime = Instant.now().toEpochMilli();
         long ftook = thisTime - lastTimeCalled;
         topicCounter.setKafkaLatency(ftook);
-        LOGGER.debug(ANSI_BLUE + "Fuura searching your batch for <[" + table + "]> with records <" + recordOffsetObjectList.size() + "> and took  <" + (ftook) + "> milliseconds. <" + (recordOffsetObjectList.size() * 1000L / ftook) + "> EPS. " + ANSI_RESET);
+        LOGGER.debug("{}Fuura searching your batch for <[{}]> with records <{}> and took  <{}> milliseconds. <{}> EPS. {}", ANSI_BLUE, table, recordOffsetObjectList.size(), (ftook), (recordOffsetObjectList.size() * 1000L / ftook), ANSI_RESET);
         long batchBytes = 0L;
 
         //  The recordOffsetObjectList loop will go through all the objects in the list.
@@ -183,9 +183,9 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         // Records left to consume in the current partition.
                         boolean b = committedToHdfs(syslogAvroWriter.getFileSize(), (RecordOffset) lastObject);
                         if (b) {
-                            LOGGER.debug("Target file size reached, file {} stored to {} in HDFS", syslogFile.getName(), lastObject.getTopic() + "/" + lastObject.getPartition() + "." + lastObject.getOffset());
+                            LOGGER.debug("Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile.getName(), lastObject.getTopic() + "/" + lastObject.getPartition() + "." + lastObject.getOffset());
                         } else {
-                            LOGGER.debug("Target file size not yet reached, continuing writing records to {}.", syslogFile.getName());
+                            LOGGER.debug("Target file size not yet reached, continuing writing records to <{}>.", syslogFile.getName());
                         }
                     } else {
                         // Previous partition was fully consumed. Commit file to HDFS and create a new AVRO-file.
@@ -261,9 +261,9 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                     // boolean b = committedToHdfs(approximatedSize + capacity, lastObject); // FIXME: approximatedSize is not working properly without the use of flush() after append. File sizes are all over the place.
                     boolean b = committedToHdfs(syslogAvroWriter.getFileSize() + capacity, (RecordOffset) lastObject);
                     if (b) {
-                        LOGGER.debug("Target file size reached, file {} stored to {} in HDFS", syslogFile.getName(), lastObject.getTopic()+"/"+lastObject.getPartition()+"."+lastObject.getOffset());
+                        LOGGER.debug("Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile.getName(), lastObject.getTopic()+"/"+lastObject.getPartition()+"."+lastObject.getOffset());
                     }else {
-                        LOGGER.debug("Target file size not yet reached, continuing writing records to {}.", syslogFile.getName());
+                        LOGGER.debug("Target file size not yet reached, continuing writing records to <{}>.", syslogFile.getName());
                     }
                     // if more records can be inserted, update epochMicros_last with the timestamp of the last inserted record.
                     epochMicros_last = epochMicros;
@@ -311,16 +311,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         topicCounter.addToTotalBytes(batchBytes);
         topicCounter.addToTotalRecords(recordOffsetObjectList.size());
 
-        LOGGER.debug(
-                ANSI_GREEN
-                        + "Sent batch for <[" + table + "]> "
-                        + "with records <" + recordOffsetObjectList.size() + "> "
-                        + "and size <" + batchBytes / 1024 + "> KB "
-                        + "took <" + (took) + "> milliseconds. "
-                        + "<" + rps + "> RPS. "
-                        + "<" + bps / 1024 + "> KB/s "
-                        + ANSI_RESET
-        );
+        LOGGER.debug("{}Sent batch for <[{}]> with records <{}> and size <{}> KB took <{}> milliseconds. <{}> RPS. <{}> KB/s {}", ANSI_GREEN, table, recordOffsetObjectList.size(), batchBytes / 1024, (took), rps, bps / 1024, ANSI_RESET);
         lastTimeCalled = Instant.now().toEpochMilli();
     }
 

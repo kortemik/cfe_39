@@ -51,7 +51,7 @@ public class KafkaReader implements AutoCloseable {
         List<RecordOffset> recordOffsetObjectList = new ArrayList<>();
         while (kafkaRecordsIterator.hasNext()) {
             ConsumerRecord<byte[], byte[]> record = kafkaRecordsIterator.next();
-            LOGGER.debug("adding from offset: " + record.offset());
+            LOGGER.debug("adding from offset: <{}>", record.offset());
             recordOffsetObjectList.add(new RecordOffset(record.topic(), record.partition(), record.offset(), record.value()));
         }
 
