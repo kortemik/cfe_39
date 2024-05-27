@@ -258,9 +258,9 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         epochMicros_last = epochMicros;
                     }
                     // Check if there is still room in syslogAvroWriter for another syslogRecord. Commit syslogAvroWriter to HDFS if no room left, emptying it out in the process.
-                    // boolean b = committedToHdfs(approximatedSize + capacity, lastObject); // FIXME: approximatedSize is not working properly without the use of flush() after append. File sizes are all over the place.
-                    boolean b = committedToHdfs(syslogAvroWriter.getFileSize() + capacity, (RecordOffset) lastObject);
-                    if (b) {
+                    // boolean fileCommitted = committedToHdfs(approximatedSize + capacity, lastObject); // FIXME: approximatedSize is not working properly without the use of flush() after append. File sizes are all over the place.
+                    boolean fileCommitted = committedToHdfs(syslogAvroWriter.getFileSize() + capacity, (RecordOffset) lastObject);
+                    if (fileCommitted) {
                         LOGGER.debug("Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile.getName(), lastObject.getTopic()+"/"+lastObject.getPartition()+"."+lastObject.getOffset());
                     }else {
                         LOGGER.debug("Target file size not yet reached, continuing writing records to <{}>.", syslogFile.getName());
