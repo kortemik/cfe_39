@@ -184,10 +184,4 @@
             <version>2.0.7</version>
         </dependency>
     </dependencies>
-    <distributionManagement>
-        <repository>
-            <id>scrapyard.xnet.fi-teragrep-releases</id>
-            <url>https://scrapyard.xnet.fi/repository/teragrep-releases/</url>
-        </repository>
-    </distributionManagement>
 </project>
