@@ -116,7 +116,7 @@ public class KafkaController {
             long topicScanDelay = 30000L;
             Thread.sleep(topicScanDelay);
             for (String topic_name : activeTopics) {
-                LOGGER.info("topic that is being bruned: <{}>", topic_name);
+                LOGGER.info("topic that is being pruned: <{}>", topic_name);
                 if (topic_name != null) {
                     try {
                         HDFSPrune hdfsPrune = new HDFSPrune(config, topic_name);
