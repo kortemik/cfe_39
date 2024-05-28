@@ -240,7 +240,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                     final long epochMicros = rfc3339ToEpoch(new RFC5424Timestamp(rfc5424Frame.timestamp).toZonedDateTime());
                     SyslogRecord syslogRecord = SyslogRecord.newBuilder()
                             .setTimestamp(epochMicros)
-                            .setMessage(rfc5424Frame.msg.toString())
+                            .setPayload(rfc5424Frame.msg.toString())
                             .setDirectory(rfc5424Frame.structuredData.getValue(teragrepDirectory).toString())
                             .setStream(rfc5424Frame.structuredData.getValue(teragrepStreamName).toString()) // Or is sourcetype/stream supposed to be rfc5424Frame.appName.toString() instead?
                             .setHost(rfc5424Frame.hostname.toString())
