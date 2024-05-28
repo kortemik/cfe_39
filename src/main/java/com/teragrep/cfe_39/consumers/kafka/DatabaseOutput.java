@@ -35,10 +35,9 @@ import java.util.function.Consumer;
 
 import java.nio.ByteBuffer;
 
-//  The kafka stream should first be deserialized using rlo_06 and then serialized again using avro and stored in HDFS.
-//  The target where the record is stored in HDFS is based on the topic, partition and offset. ie. topic_name/0.123456 where offset is 123456
-
-// The mock consumer is activated for testing using the configuration file: readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
+/*  The kafka stream should first be deserialized using rlo_06 and then serialized again using avro and stored in HDFS.
+  The target where the record is stored in HDFS is based on the topic, partition and offset. ie. topic_name/0.123456 where offset is 123456
+ The mock consumer is activated for testing using the configuration file: readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")*/
 
 public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseOutput.class);
@@ -56,7 +55,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     public static final String ANSI_GREEN = "\u001B[32m";
     public static final String ANSI_BLUE = "\u001B[34m";
     private SyslogAvroWriter syslogAvroWriter;
-    //    private final long minimumFreeSpace; // TODO: Check if needs to be implemented to the code.
     private final long maximumFileSize;
     private final WritableQueue writableQueue;
     private final ByteBuffer sourceConcatenationBuffer;
@@ -71,7 +69,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     private final SDVector originHostname;
     private File syslogFile;
     private final Config config;
-    //    private long approximatedSize; // FIXME: Not working properly when flush() is not used after append in the AVRO-file.
     private long epochMicros_last;
 
     DatabaseOutput(
@@ -84,8 +81,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         this.table = table;
         this.durationStatistics = durationStatistics;
         this.topicCounter = topicCounter;
-//        this.minimumFreeSpace = 32000000; // TODO: CHECK RIGHT VALUE FOR minimumFreeSpace
-        this.maximumFileSize = config.getMaximumFileSize(); // Maximum file size should be 64M (64000000). 60800000 is 95% of 64M which should be a good approximation point.
+        this.maximumFileSize = config.getMaximumFileSize();
 
         // queueDirectory and queueNamePrefix are only used for temporarily storing the AVRO-serialized files before committing them to HDFS when the file size reaches the threshold (or all records are processed).
         this.writableQueue = new WritableQueue(
@@ -102,7 +98,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         this.eventNodeSourceHostname = new SDVector("event_node_source@48577","hostname");
         this.eventNodeRelayHostname = new SDVector("event_node_relay@48577","hostname");
         this.originHostname = new SDVector("origin@48577","hostname");
-//        this.approximatedSize = 0;
         this.epochMicros_last = 0L;
     }
 
@@ -123,7 +118,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 writableQueue.setQueueNamePrefix(recordOffsetObject.getTopic()+recordOffsetObject.getPartition());
                 syslogFile = writableQueue.getNextWritableFile();
                 syslogAvroWriter = new SyslogAvroWriter(syslogFile);
-//                approximatedSize = syslogAvroWriter.getFileSize(); // resets the size approximation.
                 return true;
             }
         } catch (IOException ioException) {
@@ -142,11 +136,11 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         return Math.addExact(sec, instant.getNano() / NANOS_PER_MICROS);
     }
 
-    // Input parameter is a list of RecordOffsetObjects. Each object contains a record and its metadata (topic, partition and offset).
-    // Each partition will get their set of exclusive AVRO-files in HDFS.
-    // The target where the record is stored in HDFS is based on the topic, partition and last offset. ie. topic_name/0.123456 where last written record's offset is 123456.
-    // AVRO-file with a path/name that starts with topic_name/0.X should only contain records from the 0th partition of topic named topic_name, topic_name/1.X should only contain records from 1st partition, etc.
-    // AVRO-files are created dynamically, thus it is not known which record (and its offset) is written to the file last before committing it to HDFS. The final name for the HDFS file is decided only when the file is committed to HDFS.
+    /* Input parameter is a list of RecordOffsetObjects. Each object contains a record and its metadata (topic, partition and offset).
+     Each partition will get their set of exclusive AVRO-files in HDFS.
+     The target where the record is stored in HDFS is based on the topic, partition and last offset. ie. topic_name/0.123456 where last written record's offset is 123456.
+     AVRO-file with a path/name that starts with topic_name/0.X should only contain records from the 0th partition of topic named topic_name, topic_name/1.X should only contain records from 1st partition, etc.
+     AVRO-files are created dynamically, thus it is not known which record (and its offset) is written to the file last before committing it to HDFS. The final name for the HDFS file is decided only when the file is committed to HDFS.*/
     @Override
     public void accept(List<RecordOffset> recordOffsetObjectList) {
         long thisTime = Instant.now().toEpochMilli();
@@ -155,11 +149,11 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         LOGGER.debug("{}Fuura searching your batch for <[{}]> with records <{}> and took  <{}> milliseconds. <{}> EPS. {}", ANSI_BLUE, table, recordOffsetObjectList.size(), (ftook), (recordOffsetObjectList.size() * 1000L / ftook), ANSI_RESET);
         long batchBytes = 0L;
 
-        //  The recordOffsetObjectList loop will go through all the objects in the list.
-        //  While it goes through the list, the contents of the objects are serialized into an AVRO-file.
-        //  When the file size is about to go above 64M, commit the file into HDFS using the latest topic/partition/offset values as the filename and start fresh with a new empty AVRO-file.
-        //  Serialize the object that was going to make the file go above 64M into the now empty AVRO-file and continue the loop.
-        // TODO: If the prod-environment recordOffsetObjectList ordering is different from what it is in the test environment, add a function that reorders the list based on partition and offset (or better yet, make several AVRO-files that are being used at the same time rather than doing it one AVRO-file at a time as the offset ordering within partitions should always be correct in all scenarios).
+        /*  The recordOffsetObjectList loop will go through all the objects in the list.
+          While it goes through the list, the contents of the objects are serialized into an AVRO-file.
+          When the file size is about to go above 64M, commit the file into HDFS using the latest topic/partition/offset values as the filename and start fresh with a new empty AVRO-file.
+          Serialize the object that was going to make the file go above 64M into the now empty AVRO-file and continue the loop.
+         TODO: If the prod-environment recordOffsetObjectList ordering is different from what it is in the test environment, add a function that reorders the list based on partition and offset (or better yet, make several AVRO-files that are being used at the same time rather than doing it one AVRO-file at a time as the offset ordering within partitions should always be correct in all scenarios).*/
         Offset lastObject = new NullOffset(); // Abstract OffsetObject class, set to null object before initializing as RecordOffsetObject.
         long start = Instant.now().toEpochMilli(); // Starts measuring performance here. Measures how long it takes to process the whole recordOffsetObjectList.
         // This loop goes through all the records of the mock data in a single session.
@@ -172,7 +166,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                             writableQueue.getNextWritableFile();
                     //  The HDFS filename is only finalized when the AVRO-serialized file is finalized, because every Kafka-record added to the file is going to change the offset that is going to be used for the filename.
                     syslogAvroWriter = new SyslogAvroWriter(syslogFile);
-//                    approximatedSize = syslogAvroWriter.getFileSize();  // resets the size approximation.
                     lastObject = recordOffsetObject;
                 } catch (IOException ioException) {
                     throw new IllegalArgumentException(ioException);
@@ -197,7 +190,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         writableQueue.setQueueNamePrefix(recordOffsetObject.getTopic() + recordOffsetObject.getPartition());
                         syslogFile = writableQueue.getNextWritableFile();
                         syslogAvroWriter = new SyslogAvroWriter(syslogFile);
-//                      approximatedSize = syslogAvroWriter.getFileSize(); // resets the size approximation.
                     }
                 } catch (IOException ioException) {
                     throw new UncheckedIOException(ioException);
@@ -210,25 +202,10 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             rfc5424Frame.load(inputStream);
             try {
                 if(rfc5424Frame.next()) {
-                    // rfc5424Frame has loaded the record data, it's ready for deserialization.
-                    //  Implement AVRO serialization for the Kafka records here, preparing the data for writing to HDFS.
-                    //  Write all the data into a file using AVRO.
-                    //  The size of each AVRO-serialized file should be as close to 64M as possible.
-
-                    /*
-                    EXAMPLE FORMAT FROM PTH_06.KafkaReconrdConverter WHICH SHOULD BE USED FOR AVRO-FORMAT!
-                    return RowFactory.create(
-                            Timestamp.from(instant),                    // 0 "_time", DataTypes.TimestampType
-                            UTF8String.fromBytes(message).toString(),   // 1 "_raw", DataTypes.StringType
-                            UTF8String.fromBytes(index).toString(),     // 2 "directory", DataTypes.StringType
-                            UTF8String.fromBytes(sourcetype).toString(),// 3 "stream", DataTypes.StringType
-                            UTF8String.fromBytes(hostname).toString(),  // 4 "host", DataTypes.StringType,
-                            UTF8String.fromBytes(input).toString(),     // 5 "input", DataTypes.StringType
-                            partition,                                  // 6 "partition", DataTypes.StringType
-                            offset,                                     // 7 "offset", DataTypes.LongType
-                            UTF8String.fromBytes(origin).toString()     // 8 "origin", DataTypes.StringType
-                    );
-                    */
+/*                     rfc5424Frame has loaded the record data, it's ready for deserialization.
+                      Implement AVRO serialization for the Kafka records here, preparing the data for writing to HDFS.
+                      Write all the data into a file using AVRO.
+                      The size of each AVRO-serialized file should be as close to 64M as possible.*/
 
                     // input
                     final byte[] source = eventToSource();
@@ -258,7 +235,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         epochMicros_last = epochMicros;
                     }
                     // Check if there is still room in syslogAvroWriter for another syslogRecord. Commit syslogAvroWriter to HDFS if no room left, emptying it out in the process.
-                    // boolean fileCommitted = committedToHdfs(approximatedSize + capacity, lastObject); // FIXME: approximatedSize is not working properly without the use of flush() after append. File sizes are all over the place.
                     boolean fileCommitted = committedToHdfs(syslogAvroWriter.getFileSize() + capacity, (RecordOffset) lastObject);
                     if (fileCommitted) {
                         LOGGER.debug("Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile.getName(), lastObject.getTopic()+"/"+lastObject.getPartition()+"."+lastObject.getOffset());
@@ -269,9 +245,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                     epochMicros_last = epochMicros;
                     // Add syslogRecord to syslogAvroWriter which has room for new syslogRecord.
                     syslogAvroWriter.write(syslogRecord);
-//                    approximatedSize += capacity;
                     lastObject = recordOffsetObject;
-                    // The difference between actual and approximate file size is about 2,4 % with 64M files. So setting the MaximumFileSize to 95 % of the target should make things work.
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -330,10 +304,10 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     }
 
     private byte[] eventToSource() {
-        //input is produced from SD element event_node_source@48577 by
-        // concatenating "source_module:hostname:source". in case
-        //if event_node_source@48577 is not available use event_node_relay@48577.
-        //If neither are present, use null value.
+        /*input is produced from SD element event_node_source@48577 by
+         concatenating "source_module:hostname:source". in case
+        if event_node_source@48577 is not available use event_node_relay@48577.
+        If neither are present, use null value.*/
 
         sourceConcatenationBuffer.clear();
 
@@ -378,7 +352,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         }
 
 
-        // source_module:hostname:source"
         sourceConcatenationBuffer.put(source_module);
         sourceConcatenationBuffer.put((byte) ':');
         sourceConcatenationBuffer.put(source_hostname);

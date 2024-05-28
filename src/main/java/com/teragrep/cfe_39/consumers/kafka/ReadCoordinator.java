@@ -54,14 +54,14 @@ public class ReadCoordinator implements Runnable {
                                           boolean useMockKafkaConsumer) {
 
         org.apache.kafka.clients.consumer.Consumer<byte[], byte[]> kafkaConsumer;
-        if (useMockKafkaConsumer) { // Test mode is on, create mock consumers with assigned partitions that are not overlapping with each other.
+        if (useMockKafkaConsumer) { // Mock kafka consumer is enabled, create mock consumers with assigned partitions that are not overlapping with each other.
             String name = Thread.currentThread().getName(); // Use thread name to identify which thread is running the code.
             if (Objects.equals(name, "testConsumerTopic1")) {
                 kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(1); // creates a Kafka MockConsumer that has the odd numbered partitions assigned to it.
             }else {
                 kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(2); // creates a Kafka MockConsumer that has the even numbered partitions assigned to it.
             }
-        } else { // Test mode is off, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
+        } else { // Mock kafka consumer is disabled, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
             kafkaConsumer = new KafkaConsumer<>(readerKafkaProperties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
             kafkaConsumer.subscribe(Collections.singletonList(topic));
         }

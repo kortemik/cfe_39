@@ -164,7 +164,6 @@ public class MockKafkaConsumerFactoryTemp {
             endOffsets.put(topicPartition, 14L);
             mockPartitionInfo.add(new PartitionInfo("testConsumerTopic", i, null, null, null));
         }
-        // consumer.subscribe(Collections.singletonList("testConsumerTopic")); // subscribe
 
         if (threadnum == 1) {
             List<TopicPartition> oddTopicPartitions = new ArrayList<>();
@@ -201,15 +200,8 @@ public class MockKafkaConsumerFactoryTemp {
 
         consumer.updateBeginningOffsets(beginningOffsets);
 
-        //insert stuff
-        // consumer.rebalance(topicPartitions); // needed for subscribe
-        /*for (TopicPartition a : topicPartitions) {
-            generateEvents(consumer, a.topic(), a.partition());
-        }*/
-
         consumer.updateEndOffsets(endOffsets);
         consumer.updatePartitions("testConsumerTopic", mockPartitionInfo);
         return consumer;
-        //  The code for starting consumers in separate threads is located in KafkaController.java line 138.
     }
 }

@@ -48,7 +48,6 @@ class SyslogAvroWriter implements AutoCloseable {
         syncableFileOutputStream =
                 new SyncableFileOutputStream(syslogFile);
 
-        // LOGGER.debug("debugging syslogFile, path is: " + syslogFile.getPath());
         syncableFileOutputStream.getChannel().tryLock();
 
         if (syslogFile.length() == 0) {
@@ -68,10 +67,8 @@ class SyslogAvroWriter implements AutoCloseable {
 
     void write(SyslogRecord syslogRecord) throws IOException{
         dataFileWriter.append(syslogRecord);
-        dataFileWriter.flush(); // FIXME: getFileSize() doesn't work properly if dataFileWriter.flush() is not called after appending a new record to the AVRO-file.
-
-        // Avro files 'flush' must be called as few times as possible. Check memory usage impact. Use only automatic flush which is triggered when .close() is called.
-        // To use the automatic flush AND have a working getFileSize(), the file size must be tracked separately. Approximate the file size by adding the original file size before any appending to the sum of record sizes.
+        dataFileWriter.flush();
+        // getFileSize() doesn't work properly if dataFileWriter.flush() is not called after appending a new record to the AVRO-file.
     }
 
     public void close() throws IOException {

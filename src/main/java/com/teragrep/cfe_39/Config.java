@@ -32,7 +32,6 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class Config {
-    // kafka
     private final String queueTopicPattern;
     private final Properties kafkaConsumerProperties;
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
@@ -52,7 +51,7 @@ public class Config {
     private final int numOfConsumers;
     private final long pruneOffset;
 
-    // TODO: Set up configuration check for important parameters. Remove old unused parameters.
+    // TODO: Set up configuration check for important parameters.
 
     Config() throws IOException {
         Properties properties = new Properties();

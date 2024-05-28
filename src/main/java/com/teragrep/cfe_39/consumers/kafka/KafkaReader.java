@@ -41,7 +41,7 @@ public class KafkaReader implements AutoCloseable {
         long offset;
         if (!kafkaRecordsIterator.hasNext()) {
             // still need to consume more, infinitely loop because connection problems may cause return of an empty iterator
-            ConsumerRecords<byte[], byte[]> kafkaRecords = kafkaConsumer.poll(Duration.ofSeconds(60)); // TODO parametrize
+            ConsumerRecords<byte[], byte[]> kafkaRecords = kafkaConsumer.poll(Duration.ofSeconds(60));
             if (kafkaRecords.isEmpty()) {
                 LOGGER.debug("kafkaRecords empty after poll.");
             }
@@ -56,19 +56,15 @@ public class KafkaReader implements AutoCloseable {
         }
 
         if (!recordOffsetObjectList.isEmpty()) {
-            // This is the DatabaseOutput.accept() function.
-            // Offset and other required data for HDFS storage are added to the input parameters of the accept() function which processes the consumed record.
+            /* This is the DatabaseOutput.accept() function.
+             Offset and other required data for HDFS storage are added to the input parameters of the accept() function which processes the consumed record.*/
             callbackFunction.accept(recordOffsetObjectList);
             kafkaConsumer.commitSync();
-            /*
-            commitSync() only commits the offsets that were actually polled and processed. If some offsets were not included in the last poll, then those offsets will not be committed.
-            It will not commit the latest positions for all subscribed partitions. This would interfere with the Consumer Offset management concept of Kafka to be able to re-start an application where it left off.
-            * */
         }
     }
 
     @Override
     public void close() {
-        kafkaConsumer.close(Duration.ofSeconds(60)); // TODO parametrize
+        kafkaConsumer.close(Duration.ofSeconds(60));
     }
 }

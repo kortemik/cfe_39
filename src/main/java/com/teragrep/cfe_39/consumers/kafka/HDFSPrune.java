@@ -94,12 +94,12 @@ public class HDFSPrune {
             conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName()); // Maven stuff?
             conf.set("fs.file.impl", LocalFileSystem.class.getName()); // Maven stuff?
 
-            // hack for running locally with fake DNS records
-            // set this to true if overriding the host name in /etc/hosts
+            /* hack for running locally with fake DNS records
+             set this to true if overriding the host name in /etc/hosts*/
             conf.set("dfs.client.use.datanode.hostname", config.getKerberosTestMode());
 
-            // server principal
-            // the kerberos principle that the namenode is using
+            /* server principal
+             the kerberos principle that the namenode is using*/
             conf.set("dfs.namenode.kerberos.principal.pattern", config.getKerberosPrincipal());
 
             // set usergroup stuff

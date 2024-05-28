@@ -16,9 +16,9 @@ import java.util.Map;
 import java.util.Properties;
 
 public final class HDFSRead implements AutoCloseable {
-    // Maps out the latest offset for all the topic partitions available in HDFS.
-    // The offset map can then be used for kafka consumer seek() method, which will add the idempotent functionality to the consumer.
-    // Also, because this class should be called outside the loops that generate the consumer groups it should be lightweight to run.
+    /* Maps out the latest offset for all the topic partitions available in HDFS.
+     The offset map can then be used for kafka consumer seek() method, which will add the idempotent functionality to the consumer.
+     Also, because this class should be called outside the loops that generate the consumer groups it should be lightweight to run.*/
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HDFSRead.class);
     private final FileSystem fs;
@@ -29,7 +29,7 @@ public final class HDFSRead implements AutoCloseable {
     private final String path;
 
     public HDFSRead(Config config) throws IOException {
-        // Check for testmode from config.
+        // Check if mock kafka consumer is enabled in the config.
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
         this.useMockKafkaConsumer = Boolean.parseBoolean(
                 readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
@@ -57,25 +57,11 @@ public final class HDFSRead implements AutoCloseable {
                 throw new RuntimeException(e);
             }
 
-            /*//==== Create directory if not exists
-            Path workingDir=fs.getWorkingDirectory();
-            Path newDirectoryPath= new Path(path);
-            if(!fs.exists(newDirectoryPath)) {
-                // Create new Directory
-                fs.mkdirs(newDirectoryPath);
-                LOGGER.info("Path {} created.", path);
-            }*/
-
 
         }else {
             // Code for initializing the class with kerberos.
             hdfsuri = config.getHdfsuri(); // Get from config.'
             path = config.getHdfsPath();
-
-
-            // Set HADOOP user here, Kerberus parameters most likely needs to be added here too.
-            // System.setProperty("HADOOP_USER_NAME", "hdfs"); // Not needed because user authentication is done by kerberos?
-            // System.setProperty("hadoop.home.dir", "/"); // Not needed because user authentication is done by kerberos?
 
             // set kerberos host and realm
             System.setProperty("java.security.krb5.realm", config.getKerberosRealm());
@@ -91,8 +77,8 @@ public final class HDFSRead implements AutoCloseable {
             conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName()); // Maven stuff?
             conf.set("fs.file.impl", LocalFileSystem.class.getName()); // Maven stuff?
 
-            // hack for running locally with fake DNS records
-            // set this to true if overriding the host name in /etc/hosts
+            /* hack for running locally with fake DNS records
+             set this to true if overriding the host name in /etc/hosts*/
             conf.set("dfs.client.use.datanode.hostname", config.getKerberosTestMode());
 
             // server principal

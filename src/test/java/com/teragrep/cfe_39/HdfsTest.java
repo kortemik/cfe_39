@@ -184,12 +184,8 @@ public class HdfsTest {
             // logger.info("Path "+path+" created.");
         }
 
-        // This is the HDFS write path for the files:
-        // Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); where newDirectoryPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
-
-        //==== Read files
-        // logger.info("Read file into hdfs");
-        //Create a path
+        /*==== Read files
+        Create a path*/
         Path hdfsreadpath = new Path(newDirectoryPath + "/" + fileName); // The path should be the same that was used in writing the file to HDFS.
         //Init input stream
         FSDataInputStream inputStream = fs.open(hdfsreadpath);
@@ -253,7 +249,6 @@ public class HdfsTest {
                 looper = 0;
             }
         }
-        // logger.info(out);
         inputStream.close();
         fs.close();
     }
