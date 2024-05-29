@@ -201,7 +201,7 @@ public class CombinedFullTest {
             LOGGER.info("\nReading records from file {}:", hdfsreadpath.toString());
             while (reader.hasNext()) {
                 record = reader.next(record);
-                LOGGER.info(record.toString());
+                LOGGER.debug(record.toString());
                 // Assert records here like it is done in KafkaConsumerTest.avroReader().
                 if (looper <= 0) {
                     Assertions.assertEquals("{\"timestamp\": 1650872090804000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 0, \"origin\": \"jla-02.default\", \"payload\": \"[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!\"}", record.toString());

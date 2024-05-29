@@ -51,9 +51,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
 
     private long lastTimeCalled = Instant.now().toEpochMilli();
 
-    public static final String ANSI_RESET = "\u001B[0m";
-    public static final String ANSI_GREEN = "\u001B[32m";
-    public static final String ANSI_BLUE = "\u001B[34m";
     private SyslogAvroWriter syslogAvroWriter;
     private final long maximumFileSize;
     private final WritableQueue writableQueue;
@@ -146,7 +143,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         long thisTime = Instant.now().toEpochMilli();
         long ftook = thisTime - lastTimeCalled;
         topicCounter.setKafkaLatency(ftook);
-        LOGGER.debug("{}Fuura searching your batch for <[{}]> with records <{}> and took  <{}> milliseconds. <{}> EPS. {}", ANSI_BLUE, table, recordOffsetObjectList.size(), (ftook), (recordOffsetObjectList.size() * 1000L / ftook), ANSI_RESET);
+        LOGGER.debug("Fuura searching your batch for <[{}]> with records <{}> and took  <{}> milliseconds. <{}> EPS. ", table, recordOffsetObjectList.size(), (ftook), (recordOffsetObjectList.size() * 1000L / ftook));
         long batchBytes = 0L;
 
         /*  The recordOffsetObjectList loop will go through all the objects in the list.
@@ -285,7 +282,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         topicCounter.addToTotalBytes(batchBytes);
         topicCounter.addToTotalRecords(recordOffsetObjectList.size());
 
-        LOGGER.debug("{}Sent batch for <[{}]> with records <{}> and size <{}> KB took <{}> milliseconds. <{}> RPS. <{}> KB/s {}", ANSI_GREEN, table, recordOffsetObjectList.size(), batchBytes / 1024, (took), rps, bps / 1024, ANSI_RESET);
+        LOGGER.debug("Sent batch for <[{}]> with records <{}> and size <{}> KB took <{}> milliseconds. <{}> RPS. <{}> KB/s ", table, recordOffsetObjectList.size(), batchBytes / 1024, (took), rps, bps / 1024);
         lastTimeCalled = Instant.now().toEpochMilli();
     }
 
