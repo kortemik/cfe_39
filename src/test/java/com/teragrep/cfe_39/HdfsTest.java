@@ -175,12 +175,14 @@ public class HdfsTest {
                         lastRecord.getOffset(),
                         null
                 ); // Fetch input parameters from the lastRecord SyslogRecord-object.
-                LOGGER
-                        .debug(
-                                "\n" + "Last record in the " + syslogFile.getName() + " file:" + "\ntopic: "
-                                        + lastObject.getTopic() + "\npartition: " + lastObject.getPartition()
-                                        + "\noffset: " + lastObject.getOffset()
-                        );
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER
+                            .debug(
+                                    "\n" + "Last record in the " + syslogFile.getName() + " file:" + "\ntopic: "
+                                            + lastObject.getTopic() + "\npartition: " + lastObject.getPartition()
+                                            + "\noffset: " + lastObject.getOffset()
+                            );
+                }
                 try (HDFSWrite writer = new HDFSWrite(config, lastObject)) {
                     writer.commit(syslogFile, -1L); // commits the final AVRO-file to HDFS.
                 }
@@ -260,7 +262,9 @@ public class HdfsTest {
         }
         while (reader.hasNext()) {
             record = reader.next(record);
-            LOGGER.debug(record.toString());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug(record.toString());
+            }
             // Assert records here like it is done in KafkaConsumerTest.avroReader().
             if (looper <= 0) {
                 Assertions

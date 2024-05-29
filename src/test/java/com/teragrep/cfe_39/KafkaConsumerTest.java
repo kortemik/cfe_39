@@ -130,8 +130,10 @@ public class KafkaConsumerTest {
                     SyslogRecord user = null;
                     while (dataFileReader.hasNext()) {
                         user = dataFileReader.next(user);
-                        LOGGER.debug(syslogFile.getPath());
-                        LOGGER.debug(user.toString());
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug(syslogFile.getPath());
+                            LOGGER.debug(user.toString());
+                        }
                         counter++;
                         // All the mock data is generated from a set of 14 records.
                         if (looper <= 0) {

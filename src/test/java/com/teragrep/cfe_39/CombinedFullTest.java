@@ -251,7 +251,9 @@ public class CombinedFullTest {
             LOGGER.info("\nReading records from file {}:", hdfsreadpath.toString());
             while (reader.hasNext()) {
                 record = reader.next(record);
-                LOGGER.debug(record.toString());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(record.toString());
+                }
                 // Assert records here like it is done in KafkaConsumerTest.avroReader().
                 if (looper <= 0) {
                     Assertions
@@ -448,7 +450,9 @@ public class CombinedFullTest {
             // Add conditions if file filtering is required for tests.
             fs.copyFromLocalFile(readPath, hdfswritepath);
             LOGGER.debug("End Write file into hdfs");
-            LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
+            }
         }
         fs.close();
     }
