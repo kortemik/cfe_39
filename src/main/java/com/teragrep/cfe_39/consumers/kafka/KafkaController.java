@@ -85,7 +85,7 @@ public class KafkaController {
         this.useMockKafkaConsumer = Boolean
                 .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
         if (useMockKafkaConsumer) {
-            this.kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(0); // A consumer used only for scanning the available topics to be allocated to consumers running in different threads (thus 0 as input parameter).
+            this.kafkaConsumer = MockKafkaConsumerFactory.getConsumer(0); // A consumer used only for scanning the available topics to be allocated to consumers running in different threads (thus 0 as input parameter).
         }
         else {
             this.kafkaConsumer = new KafkaConsumer<>(

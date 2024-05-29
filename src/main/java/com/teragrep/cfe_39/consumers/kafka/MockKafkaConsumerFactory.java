@@ -63,11 +63,11 @@ import java.util.*;
  * @since 08/06/2022
  * @author Mikko Kortelainen
  */
-public class MockKafkaConsumerFactoryTemp {
+public class MockKafkaConsumerFactory {
 
-    final static private Logger LOGGER = LoggerFactory.getLogger(MockKafkaConsumerFactoryTemp.class);
+    final static private Logger LOGGER = LoggerFactory.getLogger(MockKafkaConsumerFactory.class);
 
-    private MockKafkaConsumerFactoryTemp() {
+    private MockKafkaConsumerFactory() {
     }
 
     private static void generateEvents(MockConsumer<byte[], byte[]> consumer, String topicName, int partition) {
