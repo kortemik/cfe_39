@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka.queue;
 
 import java.io.File;
@@ -56,12 +55,11 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 public class WritableQueue {
+
     private final Path queueDirectory;
     private String queueNamePrefix;
 
-    public WritableQueue(
-            String queueDirectory
-    ) {
+    public WritableQueue(String queueDirectory) {
         this.queueDirectory = Paths.get(queueDirectory);
         this.queueNamePrefix = "";
         QueueUtilities.accessCheck(this.queueDirectory);
@@ -69,26 +67,17 @@ public class WritableQueue {
 
     private File getNextWritableFilename() throws IOException {
 
-        try (Stream<Path> files = Files.find(
-                queueDirectory,
-                1,
-                QueueUtilities.getFileMatcher(queueNamePrefix),
-                FileVisitOption.FOLLOW_LINKS
-        )) {
+        try (
+                Stream<Path> files = Files.find(queueDirectory, 1, QueueUtilities.getFileMatcher(queueNamePrefix), FileVisitOption.FOLLOW_LINKS)
+        ) {
 
-            long sequenceNumber = files.mapToLong(
-                    QueueUtilities.getPathToSequenceNumberFunction()
-            ).max().orElse(0);
+            long sequenceNumber = files.mapToLong(QueueUtilities.getPathToSequenceNumberFunction()).max().orElse(0);
 
             long nextSequenceNumber = sequenceNumber + 1;
 
             // create next
             return new File(
-                    queueDirectory.toAbsolutePath()
-                            + File.separator
-                            + queueNamePrefix
-                            + "."
-                            + nextSequenceNumber
+                    queueDirectory.toAbsolutePath() + File.separator + queueNamePrefix + "." + nextSequenceNumber
             );
         }
         catch (UncheckedIOException uncheckedIOException) {
@@ -98,9 +87,10 @@ public class WritableQueue {
     }
 
     public File getNextWritableFile() throws IOException {
-        if (queueNamePrefix.isEmpty()){
+        if (queueNamePrefix.isEmpty()) {
             throw new IOException("No queueNamePrefix set");
-        }else {
+        }
+        else {
             return getNextWritableFilename();
         }
     }

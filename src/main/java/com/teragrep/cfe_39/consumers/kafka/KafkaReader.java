@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import org.apache.kafka.clients.consumer.*;
@@ -55,13 +54,16 @@ import java.time.Duration;
 import java.util.*;
 
 public class KafkaReader implements AutoCloseable {
+
     final Logger LOGGER = LoggerFactory.getLogger(KafkaReader.class);
     private Iterator<ConsumerRecord<byte[], byte[]>> kafkaRecordsIterator = Collections.emptyIterator();
     private final Consumer<byte[], byte[]> kafkaConsumer;
     private final java.util.function.Consumer<List<RecordOffset>> callbackFunction;
 
     public KafkaReader(
-            Consumer<byte[], byte[]> kafkaConsumer, java.util.function.Consumer<List<RecordOffset>> callbackFunction) {
+            Consumer<byte[], byte[]> kafkaConsumer,
+            java.util.function.Consumer<List<RecordOffset>> callbackFunction
+    ) {
         this.kafkaConsumer = kafkaConsumer;
         this.callbackFunction = callbackFunction;
     }
@@ -81,7 +83,8 @@ public class KafkaReader implements AutoCloseable {
         while (kafkaRecordsIterator.hasNext()) {
             ConsumerRecord<byte[], byte[]> record = kafkaRecordsIterator.next();
             LOGGER.debug("adding from offset: <{}>", record.offset());
-            recordOffsetObjectList.add(new RecordOffset(record.topic(), record.partition(), record.offset(), record.value()));
+            recordOffsetObjectList
+                    .add(new RecordOffset(record.topic(), record.partition(), record.offset(), record.value()));
         }
 
         if (!recordOffsetObjectList.isEmpty()) {

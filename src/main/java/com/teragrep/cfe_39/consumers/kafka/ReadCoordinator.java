@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -56,8 +55,8 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class ReadCoordinator implements Runnable {
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(ReadCoordinator.class);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadCoordinator.class);
 
     private final String queueTopic;
     private final Properties readerKafkaProperties;
@@ -69,29 +68,37 @@ public class ReadCoordinator implements Runnable {
             String queueTopic,
             Properties readerKafkaProperties,
             Consumer<List<RecordOffset>> callbackFunction,
-            Map<TopicPartition, Long> hdfsStartOffsets)
-    {
+            Map<TopicPartition, Long> hdfsStartOffsets
+    ) {
         this.queueTopic = queueTopic;
         this.readerKafkaProperties = readerKafkaProperties;
         this.callbackFunction = callbackFunction;
         this.hdfsStartOffsets = hdfsStartOffsets;
     }
 
-    private KafkaReader createKafkaReader(Properties readerKafkaProperties,
-                                          String topic,
-                                          Consumer<List<RecordOffset>> callbackFunction,
-                                          boolean useMockKafkaConsumer) {
+    private KafkaReader createKafkaReader(
+            Properties readerKafkaProperties,
+            String topic,
+            Consumer<List<RecordOffset>> callbackFunction,
+            boolean useMockKafkaConsumer
+    ) {
 
         org.apache.kafka.clients.consumer.Consumer<byte[], byte[]> kafkaConsumer;
         if (useMockKafkaConsumer) { // Mock kafka consumer is enabled, create mock consumers with assigned partitions that are not overlapping with each other.
             String name = Thread.currentThread().getName(); // Use thread name to identify which thread is running the code.
             if (Objects.equals(name, "testConsumerTopic1")) {
                 kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(1); // creates a Kafka MockConsumer that has the odd numbered partitions assigned to it.
-            }else {
+            }
+            else {
                 kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(2); // creates a Kafka MockConsumer that has the even numbered partitions assigned to it.
             }
-        } else { // Mock kafka consumer is disabled, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
-            kafkaConsumer = new KafkaConsumer<>(readerKafkaProperties, new ByteArrayDeserializer(), new ByteArrayDeserializer());
+        }
+        else { // Mock kafka consumer is disabled, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
+            kafkaConsumer = new KafkaConsumer<>(
+                    readerKafkaProperties,
+                    new ByteArrayDeserializer(),
+                    new ByteArrayDeserializer()
+            );
             kafkaConsumer.subscribe(Collections.singletonList(topic));
         }
 
@@ -112,13 +119,11 @@ public class ReadCoordinator implements Runnable {
     // Part or Runnable implementation, called when the thread is started.
     @Override
     public void run() {
-        boolean useMockKafkaConsumer = Boolean.parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
+        boolean useMockKafkaConsumer = Boolean
+                .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
         try (
                 KafkaReader kafkaReader = createKafkaReader(
-                        readerKafkaProperties,
-                        queueTopic,
-                        callbackFunction,
-                        useMockKafkaConsumer
+                        readerKafkaProperties, queueTopic, callbackFunction, useMockKafkaConsumer
                 )
         ) {
             while (run) {

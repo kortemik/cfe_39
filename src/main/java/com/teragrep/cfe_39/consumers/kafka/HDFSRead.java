@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import com.teragrep.cfe_39.Config;
@@ -77,9 +76,8 @@ public final class HDFSRead implements AutoCloseable {
     public HDFSRead(Config config) throws IOException {
         // Check if mock kafka consumer is enabled in the config.
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
-        this.useMockKafkaConsumer = Boolean.parseBoolean(
-                readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
-        );
+        this.useMockKafkaConsumer = Boolean
+                .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
 
         if (useMockKafkaConsumer) {
             // Code for initializing the class in test mode without kerberos.
@@ -99,12 +97,13 @@ public final class HDFSRead implements AutoCloseable {
             // filesystem for HDFS access is set here
             try {
                 fs = FileSystem.get(URI.create(hdfsuri), conf);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-
-        }else {
+        }
+        else {
             // Code for initializing the class with kerberos.
             hdfsuri = config.getHdfsuri(); // Get from config.'
             path = config.getHdfsPath();
@@ -146,9 +145,9 @@ public final class HDFSRead implements AutoCloseable {
             topicsRegexString = "^.*$"; // FIXME: all topics if none given
         }
 
-        Path workingDir=fs.getWorkingDirectory();
-        Path newDirectoryPath= new Path(path);
-        if(!fs.exists(newDirectoryPath)) {
+        Path workingDir = fs.getWorkingDirectory();
+        Path newDirectoryPath = new Path(path);
+        if (!fs.exists(newDirectoryPath)) {
             // Create new Directory
             fs.mkdirs(newDirectoryPath);
             LOGGER.info("Path <{}> created.", path);
@@ -168,34 +167,37 @@ public final class HDFSRead implements AutoCloseable {
                     String offset = split[1];
                     TopicPartition topicPartition = new TopicPartition(topic, Integer.parseInt(partition));
                     if (!offsets.containsKey(topicPartition)) {
-                        offsets.put(topicPartition, Long.parseLong(offset)+1);
-                    } else {
-                        if (offsets.get(topicPartition) < Long.parseLong(offset)+1) {
-                            offsets.replace(topicPartition, Long.parseLong(offset)+1);
+                        offsets.put(topicPartition, Long.parseLong(offset) + 1);
+                    }
+                    else {
+                        if (offsets.get(topicPartition) < Long.parseLong(offset) + 1) {
+                            offsets.replace(topicPartition, Long.parseLong(offset) + 1);
                         }
                     }
                 }
             }
-        }else {
+        }
+        else {
             LOGGER.info("No matching directories found");
         }
         return offsets;
     }
 
     private static final PathFilter topicFilter = new PathFilter() {
+
         @Override
         public boolean accept(Path path) {
             return path.getName().matches(topicsRegexString); // Catches the directory names.
         }
     };
 
-
     // try-with-resources handles closing the filesystem automatically.
     public void close() {
         if (fs != null) {
             try {
                 fs.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }

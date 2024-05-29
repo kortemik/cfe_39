@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka.queue;
 
 import org.slf4j.Logger;
@@ -56,18 +55,21 @@ import java.util.function.BiPredicate;
 import java.util.function.ToLongFunction;
 
 class QueueUtilities {
-    private static final Logger LOGGER =
-            LoggerFactory.getLogger(QueueUtilities.class);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueueUtilities.class);
 
     static BiPredicate<Path, BasicFileAttributes> getFileMatcher(String queueNamePrefix) {
         return (path, basicFileAttributes) -> {
             if (!path.getFileName().toString().startsWith(queueNamePrefix)) {
                 return false;
-            } else if (path.getFileName().toString().endsWith(".state")) {
+            }
+            else if (path.getFileName().toString().endsWith(".state")) {
                 return false;
-            } else if (!basicFileAttributes.isRegularFile()) {
+            }
+            else if (!basicFileAttributes.isRegularFile()) {
                 return false;
-            } else {
+            }
+            else {
                 LOGGER.trace("getFileMatcher returning: <{}>", path);
                 return true;
             }
@@ -76,15 +78,11 @@ class QueueUtilities {
 
     static void accessCheck(Path queueDirectory) {
         if (!Files.isDirectory(queueDirectory)) {
-            throw new IllegalArgumentException(
-                    "Provided path is not a "
-                            + "directory <[" + queueDirectory + "]>");
+            throw new IllegalArgumentException("Provided path is not a " + "directory <[" + queueDirectory + "]>");
         }
 
         if (!Files.isWritable(queueDirectory)) {
-            throw new IllegalArgumentException(
-                    "Provided path is not "
-                            + "writeable <[" + queueDirectory + "]>");
+            throw new IllegalArgumentException("Provided path is not " + "writeable <[" + queueDirectory + "]>");
         }
     }
 

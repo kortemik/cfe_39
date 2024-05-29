@@ -43,13 +43,12 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.metrics.topic;
-
 
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TopicCounter {
+
     private final String topicName;
     private final AtomicLong totalRecords = new AtomicLong();
     private final AtomicLong totalBytes = new AtomicLong();
@@ -61,11 +60,12 @@ public class TopicCounter {
     public TopicCounter(String topicName) {
         this.topicName = topicName;
     }
+
     public long getTotalRecords() {
         return totalRecords.get();
     }
 
-    public long getTotalBytes () {
+    public long getTotalBytes() {
         return totalBytes.get();
     }
 

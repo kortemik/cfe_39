@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import com.teragrep.cfe_39.avro.SyslogRecord;
@@ -57,14 +56,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 
 class SyslogAvroWriter implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SyslogAvroWriter.class);
 
-    private final DatumWriter<SyslogRecord> datumWriter =
-            new SpecificDatumWriter<>(SyslogRecord.class);
+    private final DatumWriter<SyslogRecord> datumWriter = new SpecificDatumWriter<>(SyslogRecord.class);
 
     private final SyncableFileOutputStream syncableFileOutputStream;
 
@@ -73,9 +70,7 @@ class SyslogAvroWriter implements AutoCloseable {
     SyslogAvroWriter(File syslogFile) throws IOException {
         dataFileWriter.setCodec(CodecFactory.snappyCodec());
 
-
-        syncableFileOutputStream =
-                new SyncableFileOutputStream(syslogFile);
+        syncableFileOutputStream = new SyncableFileOutputStream(syslogFile);
 
         syncableFileOutputStream.getChannel().tryLock();
 
@@ -93,8 +88,7 @@ class SyslogAvroWriter implements AutoCloseable {
         }
     }
 
-
-    void write(SyslogRecord syslogRecord) throws IOException{
+    void write(SyslogRecord syslogRecord) throws IOException {
         dataFileWriter.append(syslogRecord);
         dataFileWriter.flush();
         // getFileSize() doesn't work properly if dataFileWriter.flush() is not called after appending a new record to the AVRO-file.

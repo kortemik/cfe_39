@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import com.teragrep.cfe_39.Config;
@@ -57,11 +56,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Properties;
 
-public class HDFSWrite implements AutoCloseable{
+public class HDFSWrite implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HDFSWrite.class);
     private final String fileName;
@@ -74,9 +71,8 @@ public class HDFSWrite implements AutoCloseable{
     public HDFSWrite(Config config, RecordOffset lastObject) throws IOException {
 
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
-        this.useMockKafkaConsumer = Boolean.parseBoolean(
-                readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
-        );
+        this.useMockKafkaConsumer = Boolean
+                .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
 
         if (useMockKafkaConsumer) {
             // Code for initializing the class for mock hdfs database usage without kerberos.
@@ -85,8 +81,8 @@ public class HDFSWrite implements AutoCloseable{
             /* The filepath should be something like hdfs:///opt/teragrep/cfe_39/srv/topic_name/0.12345 where 12345 is offset and 0 the partition.
              In other words the directory named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
              These values should be fetched from config and other input parameters (topic+partition+offset).*/
-            path = config.getHdfsPath()+"/"+lastObject.topic;
-            fileName = lastObject.partition+"."+lastObject.offset; // filename should be constructed from partition and offset.
+            path = config.getHdfsPath() + "/" + lastObject.topic;
+            fileName = lastObject.partition + "." + lastObject.offset; // filename should be constructed from partition and offset.
 
             // ====== Init HDFS File System Object
             conf = new Configuration();
@@ -101,12 +97,13 @@ public class HDFSWrite implements AutoCloseable{
             // filesystem for HDFS access is set here
             try {
                 fs = FileSystem.get(URI.create(hdfsuri), conf);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
 
-
-        }else {
+        }
+        else {
             // Code for initializing the class for kerberized HDFS database usage.
             hdfsuri = config.getHdfsuri();
 
@@ -162,7 +159,8 @@ public class HDFSWrite implements AutoCloseable{
             Path hdfswritepath = new Path(newDirectoryPath.toString() + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
             if (fs.exists(hdfswritepath)) {
                 throw new RuntimeException("File " + fileName + " already exists");
-            } else {
+            }
+            else {
                 LOGGER.info("Path <{}> doesn't exist.", path);
             }
 
@@ -172,7 +170,8 @@ public class HDFSWrite implements AutoCloseable{
             boolean delete = syslogFile.delete(); // deletes the avro-file from the local disk now that it has been committed to HDFS.
             LOGGER.info("\nFile committed to HDFS, file writepath should be: <{}>\n", hdfswritepath);
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -182,6 +181,5 @@ public class HDFSWrite implements AutoCloseable{
         /* NoOp
          When used here fs.close() doesn't just affect the current class, it affects all the FileSystem objects that were created using FileSystem.get(URI.create(hdfsuri), conf); in different threads.*/
     }
-
 
 }

@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.metrics;
 
 import com.codahale.metrics.Counter;
@@ -55,6 +54,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 
 public class DurationStatistics {
+
     MetricRegistry metricRegistry = new MetricRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(DurationStatistics.class);
     private Instant lastReportTime = Instant.now();
@@ -89,13 +89,15 @@ public class DurationStatistics {
         // Check if new records were processed
         if (currentRecords > lastRecords) {
             records.inc(currentRecords - lastRecords); // new records found, adding the number of records to records.
-        }else {
+        }
+        else {
             long current = records.getCount();
             records.dec(current); // no new records so set the counter back to 0.
         }
         if (currentBytes > lastBytes) {
             bytes.inc(currentBytes - lastBytes); // new records found, adding the number of records to records.
-        }else {
+        }
+        else {
             long current = bytes.getCount();
             bytes.dec(current); // no new records so set the counter back to 0.
         }
@@ -104,8 +106,8 @@ public class DurationStatistics {
         long took = currentTime.toEpochMilli() - lastReportTime.toEpochMilli();
         samplingIntervalStat.inc(took);
 
-        recordsPerSecondStat.mark(currentRecords-lastRecords);
-        bytesPerSecondStat.mark(currentBytes-lastBytes);
+        recordsPerSecondStat.mark(currentRecords - lastRecords);
+        bytesPerSecondStat.mark(currentBytes - lastBytes);
 
         // persist
         lastReportTime = currentTime;
@@ -118,9 +120,15 @@ public class DurationStatistics {
     }
 
     public void log() {
-        LOGGER.info("## Processed records <{}> and size <{}> KB during <{}> ms / Metrics for the preceding minute: <{}> RPS. <{}> KB/s ", records.getCount(), bytes.getCount() / 1024, samplingIntervalStat.getCount(), recordsPerSecondStat.getOneMinuteRate(), bytesPerSecondStat.getOneMinuteRate() / 1024);
+        LOGGER
+                .info(
+                        "## Processed records <{}> and size <{}> KB during <{}> ms / Metrics for the preceding minute: <{}> RPS. <{}> KB/s ",
+                        records.getCount(), bytes.getCount() / 1024, samplingIntervalStat.getCount(),
+                        recordsPerSecondStat.getOneMinuteRate(), bytesPerSecondStat.getOneMinuteRate() / 1024
+                );
         samplingIntervalStat.dec(samplingIntervalStat.getCount());
     }
+
     public long addAndGetThreads(long delta) {
         threadsStat.mark(delta);
         return threadsStat.getCount();

@@ -43,10 +43,8 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39;
 
-import org.apache.logging.log4j.core.config.ConfigurationSource;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +59,7 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 public class Config {
+
     private final String queueTopicPattern;
     private final Properties kafkaConsumerProperties;
     private static final Logger LOGGER = LoggerFactory.getLogger(Config.class);
@@ -84,10 +83,11 @@ public class Config {
 
     Config() throws IOException {
         Properties properties = new Properties();
-        Path configPath = Paths.get(System.getProperty("cfe_30.config.location", System.getProperty("user.dir") + "/etc/application.properties"));
+        Path configPath = Paths
+                .get(System.getProperty("cfe_30.config.location", System.getProperty("user.dir") + "/etc/application.properties"));
         LOGGER.info("Loading application config <[{}]>", configPath.toAbsolutePath());
 
-        try(InputStream inputStream = Files.newInputStream(configPath)) {
+        try (InputStream inputStream = Files.newInputStream(configPath)) {
             properties.load(inputStream);
             LOGGER.debug("Got configuration: <{}>", properties);
         }
@@ -114,23 +114,23 @@ public class Config {
         this.kerberosKeytabPath = properties.getProperty("KerberosKeytabPath", "");
         this.kerberosTestMode = properties.getProperty("dfs.client.use.datanode.hostname", "false");
 
-
         // kafka
         this.queueTopicPattern = properties.getProperty("queueTopicPattern", "^.*$");
         this.numOfConsumers = Integer.parseInt(properties.getProperty("numOfConsumers", "1"));
 
         this.kafkaConsumerProperties = loadSubProperties(properties, "consumer.");
         String loginConfig = properties.getProperty("java.security.auth.login.config");
-        if(loginConfig == null) {
+        if (loginConfig == null) {
             throw new IOException("Property java.security.auth.login.config does not exist");
         }
-        if(!(new File(loginConfig)).isFile()) {
+        if (!(new File(loginConfig)).isFile()) {
             throw new IOException("File '" + loginConfig + "' set by java.security.auth.login.config does not exist");
         }
         System.setProperty("java.security.auth.login.config", loginConfig);
 
         // Just for loggers to work
-        Path log4j2Config = Paths.get(properties.getProperty("log4j2.configurationFile", System.getProperty("user.dir") + "/etc/log4j2.properties"));
+        Path log4j2Config = Paths
+                .get(properties.getProperty("log4j2.configurationFile", System.getProperty("user.dir") + "/etc/log4j2.properties"));
         LOGGER.info("Loading log4j2 config from <[{}]>", log4j2Config.toRealPath());
         Configurator.reconfigure(log4j2Config.toUri());
     }
@@ -143,7 +143,7 @@ public class Config {
             String key = String.valueOf(keys.nextElement());
             if (key.startsWith(prefix)) {
                 String value = properties.getProperty(key);
-                String subKey = key.replaceFirst(prefix,"");
+                String subKey = key.replaceFirst(prefix, "");
                 subProperties.put(subKey, value);
             }
         }
@@ -153,9 +153,11 @@ public class Config {
     public String getHdfsPath() {
         return hdfsPath;
     }
+
     public void setHdfsuri(String input) {
         this.hdfsuri = input;
     }
+
     public String getHdfsuri() {
         return hdfsuri;
     }
@@ -163,48 +165,63 @@ public class Config {
     public String getQueueDirectory() {
         return queueDirectory;
     }
+
     public String getQueueNamePrefix() {
         return queueNamePrefix;
     }
+
     public String getQueueTopicPattern() {
         return queueTopicPattern;
     }
+
     public Properties getKafkaConsumerProperties() {
         return kafkaConsumerProperties;
     }
+
     public String getKerberosHost() {
         return kerberosHost;
     }
+
     public String getKerberosRealm() {
         return kerberosRealm;
     }
+
     public String getKerberosPrincipal() {
         return kerberosPrincipal;
     }
+
     public String getHadoopAuthentication() {
         return hadoopAuthentication;
     }
+
     public String getHadoopAuthorization() {
         return hadoopAuthorization;
     }
+
     public String getKerberosKeytabUser() {
         return kerberosKeytabUser;
     }
+
     public String getKerberosKeytabPath() {
         return kerberosKeytabPath;
     }
+
     public String getKerberosTestMode() {
         return kerberosTestMode;
     }
+
     public long getMaximumFileSize() {
         return maximumFileSize;
     }
+
     public void setMaximumFileSize(long maximumFileSize) {
         this.maximumFileSize = maximumFileSize;
     }
+
     public int getNumOfConsumers() {
         return numOfConsumers;
     }
+
     public long getPruneOffset() {
         return pruneOffset;
     }

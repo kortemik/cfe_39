@@ -43,17 +43,22 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 public abstract class Offset {
+
     protected String topic;
     protected Integer partition;
     protected Long offset;
     protected byte[] record;
+
     public abstract boolean isNull();
+
     public abstract String getTopic();
+
     public abstract Integer getPartition();
+
     public abstract Long getOffset();
+
     public abstract byte[] getRecord();
 }

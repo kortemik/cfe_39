@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39;
 
 import com.teragrep.cfe_39.avro.SyslogRecord;
@@ -66,9 +65,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
-import java.sql.Timestamp;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -79,17 +76,18 @@ public class CombinedFullTest {
     private static File baseDir;
     private static Config config;
 
-
     // Start minicluster and initialize config.
     @BeforeAll
     public static void startMiniCluster() throws IOException, InterruptedException {
         config = null;
         try {
             config = new Config();
-        } catch (IOException e){
+        }
+        catch (IOException e) {
             LOGGER.error("Can't load config: {}", e.toString());
             Assertions.fail();
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             LOGGER.error("Got invalid config: {}", e.toString());
             Assertions.fail();
         }
@@ -99,7 +97,7 @@ public class CombinedFullTest {
         conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
         MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
         hdfsCluster = builder.build();
-        String hdfsURI = "hdfs://localhost:"+ hdfsCluster.getNameNodePort() + "/";
+        String hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/";
         config.setHdfsuri(hdfsURI);
         DistributedFileSystem fileSystem = hdfsCluster.getFileSystem();
     }
@@ -124,18 +122,20 @@ public class CombinedFullTest {
         if (config.getPruneOffset() == 157784760000L) {
             try {
                 hdfsReadCheck();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
     }
+
     @Test
     public void hdfsPruneTest() throws IOException {
         // Check that the files were properly written to HDFS with a read test.
         String hdfsuri = config.getHdfsuri();
 
-        String path = config.getHdfsPath()+"/"+"testConsumerTopic";
+        String path = config.getHdfsPath() + "/" + "testConsumerTopic";
         // ====== Init HDFS File System Object
         Configuration conf = new Configuration();
         // Set FileSystem URI
@@ -150,22 +150,22 @@ public class CombinedFullTest {
         FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
 
         //==== Create directory if not exists
-        Path workingDir=fs.getWorkingDirectory();
-        Path newDirectoryPath= new Path(path);
-        if(!fs.exists(newDirectoryPath)) {
+        Path workingDir = fs.getWorkingDirectory();
+        Path newDirectoryPath = new Path(path);
+        if (!fs.exists(newDirectoryPath)) {
             // Create new Directory
             fs.mkdirs(newDirectoryPath);
             LOGGER.info("Path {} created.", path);
         }
 
         /* Use either HDFS-file modification timestamps or avro-mapred for pruning.
-
+        
          The records are in this AVRO format:
          {"timestamp": 1650872092240000, "message": "25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]", "directory": "jla02logger", "stream": "test:jla02logger:0", "host": "jla-02.default", "input": "imrelp:cfe-06-0.cfe-06.default:", "partition": "8", "offset": 8, "origin": "jla-02.default"}
          Query handler must be implemented in a way that the AVRO files are first opened, then processed to syslog format and then sent to the query requester. The records are processed/filtered based on the given query conditions using MapReduce to make the code capable of processing the vast amounts of records that are expected.
          MapReduce functionalities of the Hadoop cluster: https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html
          Avro side of documentations for MapReduce: https://avro.apache.org/docs/1.11.1/mapreduce-guide/
-
+        
          Another method for pruning aside using avro-mapred is to use modification timestamp of the avro-file stored in HDFS:
          fs.setTimes(new Path(path+"/"+0.8), Long.parseUnsignedLong("1675930598000"), -1);
          where mtime is modification time and atime is access time. -1 as input parameter leaves the original atime/mtime value as is.*/
@@ -186,7 +186,8 @@ public class CombinedFullTest {
             }
             Assertions.assertTrue(delete);
             LOGGER.info("All files were pruned properly.");
-        }else {
+        }
+        else {
             if (config.getPruneOffset() == 157784760000L) {
                 Assertions.fail("There were no files available in the database when there should be.");
             }
@@ -200,7 +201,7 @@ public class CombinedFullTest {
         // Check that the files were properly written to HDFS with a read test.
         String hdfsuri = config.getHdfsuri();
 
-        String path = config.getHdfsPath()+"/"+"testConsumerTopic";
+        String path = config.getHdfsPath() + "/" + "testConsumerTopic";
         // ====== Init HDFS File System Object
         Configuration conf = new Configuration();
         // Set FileSystem URI
@@ -215,9 +216,9 @@ public class CombinedFullTest {
         FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
 
         //==== Create directory if not exists
-        Path workingDir=fs.getWorkingDirectory();
-        Path newDirectoryPath= new Path(path);
-        if(!fs.exists(newDirectoryPath)) {
+        Path workingDir = fs.getWorkingDirectory();
+        Path newDirectoryPath = new Path(path);
+        if (!fs.exists(newDirectoryPath)) {
             // Create new Directory
             fs.mkdirs(newDirectoryPath);
             LOGGER.info("Path {} created.", path);
@@ -225,7 +226,7 @@ public class CombinedFullTest {
 
         /* This is the HDFS write path for the files:
          Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); where newDirectoryPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
-
+        
          Create the list of files to read from HDFS. Test setup is created so each of the 0-9 partitions will have 2 files with offsets of 8 and 13.*/
         List<String> filenameList = new ArrayList<>();
         for (int i = 0; i <= 9; i++) {
@@ -242,7 +243,10 @@ public class CombinedFullTest {
             //Init input stream
             FSDataInputStream inputStream = fs.open(hdfsreadpath);
             //The data is in AVRO-format, so it can't be read as a string.
-            DataFileStream<SyslogRecord> reader = new DataFileStream<>(inputStream, new SpecificDatumReader<>(SyslogRecord.class));
+            DataFileStream<SyslogRecord> reader = new DataFileStream<>(
+                    inputStream,
+                    new SpecificDatumReader<>(SyslogRecord.class)
+            );
             SyslogRecord record = null;
             LOGGER.info("\nReading records from file {}:", hdfsreadpath.toString());
             while (reader.hasNext()) {
@@ -250,46 +254,143 @@ public class CombinedFullTest {
                 LOGGER.debug(record.toString());
                 // Assert records here like it is done in KafkaConsumerTest.avroReader().
                 if (looper <= 0) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872090804000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 0, \"origin\": \"jla-02.default\", \"payload\": \"[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!\"}", record.toString());
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872090804000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 0, \"origin\": \"jla-02.default\", \"payload\": \"[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 1) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872090806000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 1, \"origin\": \"jla-02.default\", \"payload\": \"[ERROR] 2022-04-25 07:34:50,806 com.teragrep.jla_02.Log4j Log - Log4j error says hi!\"}", record.toString());
+                }
+                else if (looper == 1) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872090806000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 1, \"origin\": \"jla-02.default\", \"payload\": \"[ERROR] 2022-04-25 07:34:50,806 com.teragrep.jla_02.Log4j Log - Log4j error says hi!\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 2) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 2, \"origin\": \"jla-02\", \"payload\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Daily - Logback-daily says hi.\"}", record.toString());
+                }
+                else if (looper == 2) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 2, \"origin\": \"jla-02\", \"payload\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Daily - Logback-daily says hi.\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 3) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 3, \"origin\": \"jla-02\", \"payload\": \"470646  [Thread-3] INFO  com.teragrep.jla_02.Logback Audit - Logback-audit says hi.\"}", record.toString());
+                }
+                else if (looper == 3) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 3, \"origin\": \"jla-02\", \"payload\": \"470646  [Thread-3] INFO  com.teragrep.jla_02.Logback Audit - Logback-audit says hi.\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 4) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 4, \"origin\": \"jla-02\", \"payload\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Metric - Logback-metric says hi.\"}", record.toString());
+                }
+                else if (looper == 4) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872090822000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 4, \"origin\": \"jla-02\", \"payload\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Metric - Logback-metric says hi.\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 5) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092238000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 5, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.238 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info audit says hi!]\"}", record.toString());
+                }
+                else if (looper == 5) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092238000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 5, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.238 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info audit says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 6) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092239000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 6, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info daily says hi!]\"}", record.toString());
+                }
+                else if (looper == 6) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092239000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 6, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info daily says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 7) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092239000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 7, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info metric says hi!]\"}", record.toString());
+                }
+                else if (looper == 7) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092239000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 7, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info metric says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 8) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092240000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 8, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]\"}", record.toString());
+                }
+                else if (looper == 8) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092240000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 8, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 9) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092240000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 9, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn daily says hi!]\"}", record.toString());
+                }
+                else if (looper == 9) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092240000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 9, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn daily says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 10) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092241000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 10, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.241 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn metric says hi!]\"}", record.toString());
+                }
+                else if (looper == 10) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092241000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 10, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.241 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn metric says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 11) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092241000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 11, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.241 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error audit says hi!]\"}", record.toString());
+                }
+                else if (looper == 11) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092241000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 11, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.241 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error audit says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else if (looper == 12) {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092242000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 12, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.242 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error daily says hi!]\"}", record.toString());
+                }
+                else if (looper == 12) {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092242000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 12, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.242 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error daily says hi!]\"}",
+                                    record.toString()
+                            );
                     looper++;
-                } else {
-                    Assertions.assertEquals("{\"timestamp\": 1650872092243000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \"" + partitionCounter + "\", \"offset\": 13, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]\"}", record.toString());
+                }
+                else {
+                    Assertions
+                            .assertEquals(
+                                    "{\"timestamp\": 1650872092243000, \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
+                                            + partitionCounter
+                                            + "\", \"offset\": 13, \"origin\": \"jla-02.default\", \"payload\": \"25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]\"}",
+                                    record.toString()
+                            );
                     looper = 0;
                     LOGGER.info("Partition {} passed assertions.", partitionCounter);
                     partitionCounter++;
@@ -301,7 +402,7 @@ public class CombinedFullTest {
     }
 
     private void insertMockFiles() throws IOException {
-        String path = config.getHdfsPath()+"/"+"testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
+        String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
         String hdfsURI = config.getHdfsuri();
         // ====== Init HDFS File System Object
         Configuration conf = new Configuration();
@@ -316,7 +417,6 @@ public class CombinedFullTest {
         //Get the filesystem - HDFS
         FileSystem fs = FileSystem.get(URI.create(hdfsURI), conf);
 
-
         //==== Create directory if not exists
         Path workingDir = fs.getWorkingDirectory();
         // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
@@ -327,8 +427,9 @@ public class CombinedFullTest {
             LOGGER.debug("Path {} created.", path);
         }
 
-        String dir = System.getProperty("user.dir")+"/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
-        Set<String> listOfFiles = Stream.of(Objects.requireNonNull(new File(dir).listFiles()))
+        String dir = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
+        Set<String> listOfFiles = Stream
+                .of(Objects.requireNonNull(new File(dir).listFiles()))
                 .filter(file -> !file.isDirectory())
                 .map(File::getName)
                 .collect(Collectors.toSet());

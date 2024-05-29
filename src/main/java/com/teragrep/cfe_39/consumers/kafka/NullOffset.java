@@ -43,10 +43,9 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
-public class NullOffset extends Offset{
+public class NullOffset extends Offset {
 
     @Override
     public boolean isNull() {

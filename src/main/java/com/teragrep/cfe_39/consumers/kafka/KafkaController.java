@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import com.teragrep.cfe_39.Config;
@@ -56,7 +55,6 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.Duration;
@@ -65,7 +63,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 public class KafkaController {
 
@@ -85,13 +82,17 @@ public class KafkaController {
         this.config = config;
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
         this.numOfConsumers = config.getNumOfConsumers();
-        this.useMockKafkaConsumer = Boolean.parseBoolean(
-                readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
-        );
+        this.useMockKafkaConsumer = Boolean
+                .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
         if (useMockKafkaConsumer) {
             this.kafkaConsumer = MockKafkaConsumerFactoryTemp.getConsumer(0); // A consumer used only for scanning the available topics to be allocated to consumers running in different threads (thus 0 as input parameter).
-        } else {
-            this.kafkaConsumer = new KafkaConsumer<>(config.getKafkaConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
+        }
+        else {
+            this.kafkaConsumer = new KafkaConsumer<>(
+                    config.getKafkaConsumerProperties(),
+                    new ByteArrayDeserializer(),
+                    new ByteArrayDeserializer()
+            );
         }
         hdfsStartOffsets = new HashMap<>();
     }
@@ -105,10 +106,11 @@ public class KafkaController {
         List<TopicCounter> topicCounters = new CopyOnWriteArrayList<>();
 
         // Generates offsets of the already committed records for Kafka and passes them to the kafka consumers.
-        try (HDFSRead hr = new HDFSRead(config) ) {
+        try (HDFSRead hr = new HDFSRead(config)) {
             hdfsStartOffsets = hr.hdfsStartOffsets();
             LOGGER.debug("topicPartitionStartMap generated succesfully: <{}>", hdfsStartOffsets);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -126,7 +128,8 @@ public class KafkaController {
                     try {
                         HDFSPrune hdfsPrune = new HDFSPrune(config, topic_name);
                         hdfsPrune.prune();
-                    } catch (IOException e) {
+                    }
+                    catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
@@ -141,7 +144,8 @@ public class KafkaController {
     }
 
     // Creates kafka topic consumer based on input parameters.
-    private void createReader(String topic, List<PartitionInfo> listPartitionInfo, List<TopicCounter> topicCounters) throws SQLException {
+    private void createReader(String topic, List<PartitionInfo> listPartitionInfo, List<TopicCounter> topicCounters)
+            throws SQLException {
 
         // Create a new topicCounter object for the topic that has not been added to topicCounters-list yet.
         TopicCounter topicCounter = new TopicCounter(topic);
@@ -164,7 +168,7 @@ public class KafkaController {
                     output,
                     hdfsStartOffsets
             );
-            Thread readThread = new Thread(null, readCoordinator, topic+testi); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
+            Thread readThread = new Thread(null, readCoordinator, topic + testi); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
             threads.add(readThread);
             readThread.start(); // Starts the thread, in other words proceeds to call run() function of ReadCoordinator.
         }
@@ -174,7 +178,7 @@ public class KafkaController {
     private void topicScan(DurationStatistics durationStatistics, List<TopicCounter> topicCounters) {
         Map<String, List<PartitionInfo>> listTopics = kafkaConsumer.listTopics(Duration.ofSeconds(60));
         Pattern topicsRegex = Pattern.compile(config.getQueueTopicPattern());
-//         Find the topics available in Kafka based on given QueueTopicPattern, both active and in-active.
+        //         Find the topics available in Kafka based on given QueueTopicPattern, both active and in-active.
         Set<String> foundTopics = new HashSet<>();
         Map<String, List<PartitionInfo>> foundPartitions = new HashMap<>();
         for (Map.Entry<String, List<PartitionInfo>> entry : listTopics.entrySet()) {
@@ -185,7 +189,7 @@ public class KafkaController {
             }
         }
         if (foundTopics.isEmpty()) {
-            throw new IllegalStateException("Pattern <[" + config.getQueueTopicPattern() + "]> found no topics." );
+            throw new IllegalStateException("Pattern <[" + config.getQueueTopicPattern() + "]> found no topics.");
         }
         // subtract currently active topics from found topics
         foundTopics.removeAll(activeTopics);
@@ -194,7 +198,6 @@ public class KafkaController {
             foundPartitions.remove(topic_name); // removes the partitions from the list based on the topic name.
         }
 
-
         // Activate all the found in-active topics, in other words create consumer groups for all of them using the createReader()-function.
         foundPartitions.forEach((k, v) -> {
             LOGGER.debug("Activating topic <{}>", k);
@@ -202,7 +205,8 @@ public class KafkaController {
                 createReader(k, v, topicCounters);
                 activeTopics.add(k);
                 durationStatistics.addAndGetThreads(1);
-            } catch (SQLException sqlException) {
+            }
+            catch (SQLException sqlException) {
                 LOGGER.error("Topic <{}> not activated due to reader creation error: ", k, sqlException);
             }
         });

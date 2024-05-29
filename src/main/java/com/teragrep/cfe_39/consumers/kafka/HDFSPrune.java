@@ -43,7 +43,6 @@
  * Teragrep, the applicable Commercial License may apply to this file if you as
  * a licensee so wish it.
  */
-
 package com.teragrep.cfe_39.consumers.kafka;
 
 import com.teragrep.cfe_39.Config;
@@ -60,9 +59,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 public class HDFSPrune {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HDFSPrune.class);
     private Config config;
     private final FileSystem fs;
@@ -74,9 +73,8 @@ public class HDFSPrune {
 
         // Check for testmode from config.
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
-        this.useMockKafkaConsumer = Boolean.parseBoolean(
-                readerKafkaProperties.getProperty("useMockKafkaConsumer", "false")
-        );
+        this.useMockKafkaConsumer = Boolean
+                .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
 
         if (useMockKafkaConsumer) {
             this.config = config;
@@ -103,7 +101,8 @@ public class HDFSPrune {
                 fs.mkdirs(newDirectoryPath);
                 LOGGER.info("Path <{}> created.", path);
             }
-        }else {
+        }
+        else {
             // Code for initializing the class with kerberos.
             String hdfsuri = config.getHdfsuri(); // Get from config.
 
@@ -155,14 +154,15 @@ public class HDFSPrune {
         // Fetch the filestatuses of HDFS files.
         FileStatus[] fileStatuses = fs.listStatus(new Path(newDirectoryPath + "/"));
         if (fileStatuses.length > 0) {
-        for (FileStatus a : fileStatuses) {
-            // Delete old files
-            if (a.getModificationTime() < cutOffEpoch) {
-                boolean delete = fs.delete(a.getPath(), true);
-                LOGGER.info("Deleted file <{}>", a.getPath());
+            for (FileStatus a : fileStatuses) {
+                // Delete old files
+                if (a.getModificationTime() < cutOffEpoch) {
+                    boolean delete = fs.delete(a.getPath(), true);
+                    LOGGER.info("Deleted file <{}>", a.getPath());
+                }
             }
         }
-        } else {
+        else {
             LOGGER.info("No files found in directory <{}>", new Path(newDirectoryPath + "/"));
         }
     }
