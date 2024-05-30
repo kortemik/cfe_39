@@ -318,7 +318,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 }
             }
             catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
         }
 
@@ -332,7 +332,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             }
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
 
         // Measures performance of code that is between start and end.
