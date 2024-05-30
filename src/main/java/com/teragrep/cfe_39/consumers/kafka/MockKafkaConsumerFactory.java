@@ -45,6 +45,7 @@
  */
 package com.teragrep.cfe_39.consumers.kafka;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.MockConsumer;
@@ -63,6 +64,7 @@ import java.util.*;
  * @since 08/06/2022
  * @author Mikko Kortelainen
  */
+@VisibleForTesting
 public class MockKafkaConsumerFactory {
 
     final static private Logger LOGGER = LoggerFactory.getLogger(MockKafkaConsumerFactory.class);
