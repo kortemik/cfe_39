@@ -64,9 +64,10 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KafkaController {
+// Ingests data for HDFS database, periodically scans kafka for new topics based on config.getQueueTopicPattern() and creates kafka topic consumer groups for the new topics that will store the records to HDFS.
+public class HdfsDataIngestion {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HdfsDataIngestion.class);
     private final Config config;
     private final org.apache.kafka.clients.consumer.Consumer<byte[], byte[]> kafkaConsumer;
     private final List<Thread> threads = new ArrayList<>();
@@ -77,7 +78,7 @@ public class KafkaController {
     private final int numOfConsumers;
     private Map<TopicPartition, Long> hdfsStartOffsets;
 
-    public KafkaController(Config config) {
+    public HdfsDataIngestion(Config config) {
         keepRunning = true;
         this.config = config;
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();

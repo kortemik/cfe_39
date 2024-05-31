@@ -47,7 +47,7 @@ package com.teragrep.cfe_39;
 
 import com.teragrep.cfe_39.avro.SyslogRecord;
 import com.teragrep.cfe_39.consumers.kafka.HDFSWrite;
-import com.teragrep.cfe_39.consumers.kafka.KafkaController;
+import com.teragrep.cfe_39.consumers.kafka.HdfsDataIngestion;
 import com.teragrep.cfe_39.consumers.kafka.RecordOffset;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileStream;
@@ -94,8 +94,8 @@ public class HdfsTest {
         }
         startMiniCluster();
         config.setMaximumFileSize(3000); // 10 loops (140 records) are in use at the moment, and that is sized at 36,102 bytes.
-        KafkaController kafkaController = new KafkaController(config);
-        kafkaController.run();
+        HdfsDataIngestion hdfsDataIngestion = new HdfsDataIngestion(config);
+        hdfsDataIngestion.run();
     }
 
     public static void startMiniCluster() throws IOException {

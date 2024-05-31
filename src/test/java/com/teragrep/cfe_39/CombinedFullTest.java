@@ -46,7 +46,7 @@
 package com.teragrep.cfe_39;
 
 import com.teragrep.cfe_39.avro.SyslogRecord;
-import com.teragrep.cfe_39.consumers.kafka.KafkaController;
+import com.teragrep.cfe_39.consumers.kafka.HdfsDataIngestion;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.conf.Configuration;
@@ -113,9 +113,9 @@ public class CombinedFullTest {
     public void kafkaAndAvroFullTest() throws InterruptedException, IOException {
         insertMockFiles(); // Maybe add modifier that allows adding or not adding the mock file.
         config.setMaximumFileSize(3000); // 10 loops (140 records) are in use at the moment, and that is sized at 36,102 bytes.
-        KafkaController kafkaController = new KafkaController(config);
+        HdfsDataIngestion hdfsDataIngestion = new HdfsDataIngestion(config);
         Thread.sleep(10000);
-        kafkaController.run();
+        hdfsDataIngestion.run();
         /* The avro files should be committed to HDFS now. Check the committed files for any errors.
          There should be 20 files, 10 partitions with each having 2 files assigned to them.
          hdfsReadCheck(); does not work properly if pruning is enabled and prune offset is set too low, which causes the records to be pruned from the database.*/
