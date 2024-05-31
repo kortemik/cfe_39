@@ -133,7 +133,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 }
 
                 // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the 64M size limit.
-                writableQueue.setQueueNamePrefix(recordOffsetObject.getTopic() + recordOffsetObject.getPartition());
+                writableQueue.setQueueNamePrefix(recordOffsetObject.topic() + recordOffsetObject.partition());
                 syslogFile = writableQueue.getNextWritableFile();
                 syslogAvroWriter = new SyslogAvroWriter(syslogFile);
                 return true;
@@ -187,7 +187,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             // Initializing syslogAvroWriter and lastObject.
             if (syslogAvroWriter == null && lastObject.isNull()) {
                 try {
-                    writableQueue.setQueueNamePrefix(recordOffsetObject.getTopic() + recordOffsetObject.getPartition());
+                    writableQueue.setQueueNamePrefix(recordOffsetObject.topic() + recordOffsetObject.partition());
                     syslogFile = writableQueue.getNextWritableFile();
                     //  The HDFS filename is only finalized when the AVRO-serialized file is finalized, because every Kafka-record added to the file is going to change the offset that is going to be used for the filename.
                     syslogAvroWriter = new SyslogAvroWriter(syslogFile);
@@ -200,8 +200,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             else {
                 try {
                     if (
-                        lastObject.getTopic().equals(recordOffsetObject.getTopic())
-                                & lastObject.getPartition().equals(recordOffsetObject.getPartition())
+                        lastObject.topic().equals(recordOffsetObject.topic())
+                                & lastObject.partition().equals(recordOffsetObject.partition())
                     ) {
                         // Records left to consume in the current partition.
                         boolean fileCommitted = committedToHdfs(
@@ -213,8 +213,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                                         .debug(
                                                 "Target file size reached, file <{}> stored to <{}> in HDFS",
                                                 syslogFile.getName(),
-                                                lastObject.getTopic() + "/" + lastObject.getPartition() + "."
-                                                        + lastObject.getOffset()
+                                                lastObject.topic() + "/" + lastObject.partition() + "."
+                                                        + lastObject.offset()
                                         );
                             }
                         }
@@ -235,8 +235,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         writer.commit(syslogFile, epochMicros_last);
 
                         // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the 64M size limit.
-                        writableQueue
-                                .setQueueNamePrefix(recordOffsetObject.getTopic() + recordOffsetObject.getPartition());
+                        writableQueue.setQueueNamePrefix(recordOffsetObject.topic() + recordOffsetObject.partition());
                         syslogFile = writableQueue.getNextWritableFile();
                         syslogAvroWriter = new SyslogAvroWriter(syslogFile);
                     }
@@ -246,7 +245,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 }
             }
 
-            byte[] byteArray = recordOffsetObject.getRecord(); // loads the byte[] contained in recordOffsetObject.getRecord() to byteArray.
+            byte[] byteArray = recordOffsetObject.record(); // loads the byte[] contained in recordOffsetObject.getRecord() to byteArray.
             batchBytes = batchBytes + byteArray.length;
             InputStream inputStream = new ByteArrayInputStream(byteArray);
             rfc5424Frame.load(inputStream);
@@ -275,8 +274,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                             .setStream(rfc5424Frame.structuredData.getValue(teragrepStreamName).toString()) // Or is sourcetype/stream supposed to be rfc5424Frame.appName.toString() instead?
                             .setHost(rfc5424Frame.hostname.toString())
                             .setInput(new String(source, StandardCharsets.UTF_8))
-                            .setPartition(recordOffsetObject.getPartition().toString())
-                            .setOffset(recordOffsetObject.getOffset())
+                            .setPartition(recordOffsetObject.partition().toString())
+                            .setOffset(recordOffsetObject.offset())
                             .setOrigin(new String(origin, StandardCharsets.UTF_8))
                             .build();
 
@@ -296,8 +295,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                                     .debug(
                                             "Target file size reached, file <{}> stored to <{}> in HDFS",
                                             syslogFile.getName(),
-                                            lastObject.getTopic() + "/" + lastObject.getPartition() + "."
-                                                    + lastObject.getOffset()
+                                            lastObject.topic() + "/" + lastObject.partition() + "."
+                                                    + lastObject.offset()
                                     );
                         }
                     }

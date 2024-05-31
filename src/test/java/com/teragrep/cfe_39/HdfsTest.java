@@ -179,8 +179,8 @@ public class HdfsTest {
                     LOGGER
                             .debug(
                                     "\n" + "Last record in the " + syslogFile.getName() + " file:" + "\ntopic: "
-                                            + lastObject.getTopic() + "\npartition: " + lastObject.getPartition()
-                                            + "\noffset: " + lastObject.getOffset()
+                                            + lastObject.topic() + "\npartition: " + lastObject.partition()
+                                            + "\noffset: " + lastObject.offset()
                             );
                 }
                 try (HDFSWrite writer = new HDFSWrite(config, lastObject)) {

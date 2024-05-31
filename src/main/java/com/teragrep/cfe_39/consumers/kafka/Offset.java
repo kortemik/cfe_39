@@ -45,20 +45,15 @@
  */
 package com.teragrep.cfe_39.consumers.kafka;
 
-public abstract class Offset {
+public interface Offset {
 
-    protected String topic;
-    protected Integer partition;
-    protected Long offset;
-    protected byte[] record;
+    public boolean isNull();
 
-    public abstract boolean isNull();
+    public String topic();
 
-    public abstract String getTopic();
+    public Integer partition();
 
-    public abstract Integer getPartition();
+    public Long offset();
 
-    public abstract Long getOffset();
-
-    public abstract byte[] getRecord();
+    public byte[] record();
 }

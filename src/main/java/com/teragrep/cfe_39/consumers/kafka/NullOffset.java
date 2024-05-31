@@ -45,7 +45,8 @@
  */
 package com.teragrep.cfe_39.consumers.kafka;
 
-public class NullOffset extends Offset {
+// Null object design pattern, used to create null offset objects.
+public final class NullOffset implements Offset {
 
     @Override
     public boolean isNull() {
@@ -53,22 +54,22 @@ public class NullOffset extends Offset {
     }
 
     @Override
-    public String getTopic() {
+    public String topic() {
         return "Not available";
     }
 
     @Override
-    public Integer getPartition() {
+    public Integer partition() {
         return 0;
     }
 
     @Override
-    public Long getOffset() {
+    public Long offset() {
         return 0L;
     }
 
     @Override
-    public byte[] getRecord() {
+    public byte[] record() {
         return new byte[0];
     }
 }

@@ -46,7 +46,12 @@
 package com.teragrep.cfe_39.consumers.kafka;
 
 // This is the class for handling the Kafka record topic/partition/offset data that are required for HDFS storage.
-public class RecordOffset extends Offset {
+public final class RecordOffset implements Offset {
+
+    private final String topic;
+    private final int partition;
+    private final long offset;
+    private final byte[] record;
 
     public RecordOffset(String topic, int partition, long offset, byte[] record) {
         this.topic = topic;
@@ -61,22 +66,22 @@ public class RecordOffset extends Offset {
     }
 
     @Override
-    public String getTopic() {
+    public String topic() {
         return topic;
     }
 
     @Override
-    public Integer getPartition() {
+    public Integer partition() {
         return partition;
     }
 
     @Override
-    public Long getOffset() {
+    public Long offset() {
         return offset;
     }
 
     @Override
-    public byte[] getRecord() {
+    public byte[] record() {
         return record;
     }
 }

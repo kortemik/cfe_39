@@ -81,8 +81,8 @@ public class HDFSWrite implements AutoCloseable {
             /* The filepath should be something like hdfs:///opt/teragrep/cfe_39/srv/topic_name/0.12345 where 12345 is offset and 0 the partition.
              In other words the directory named topic_name holds files that are named and arranged based on partition and the partition's offset. Every partition has its own set of unique offset values.
              These values should be fetched from config and other input parameters (topic+partition+offset).*/
-            path = config.getHdfsPath() + "/" + lastObject.topic;
-            fileName = lastObject.partition + "." + lastObject.offset; // filename should be constructed from partition and offset.
+            path = config.getHdfsPath() + "/" + lastObject.topic();
+            fileName = lastObject.partition() + "." + lastObject.offset(); // filename should be constructed from partition and offset.
 
             // ====== Init HDFS File System Object
             conf = new Configuration();
@@ -107,8 +107,8 @@ public class HDFSWrite implements AutoCloseable {
             // Code for initializing the class for kerberized HDFS database usage.
             hdfsuri = config.getHdfsuri();
 
-            path = config.getHdfsPath() + "/" + lastObject.topic;
-            fileName = lastObject.partition + "." + lastObject.offset;
+            path = config.getHdfsPath() + "/" + lastObject.topic();
+            fileName = lastObject.partition() + "." + lastObject.offset();
 
             // set kerberos host and realm
             System.setProperty("java.security.krb5.realm", config.getKerberosRealm());
