@@ -47,13 +47,13 @@ package com.teragrep.cfe_39.consumers.kafka;
 
 public interface Offset {
 
-    public boolean isNull();
+    boolean isNull();
 
-    public String topic();
+    String topic();
 
-    public Integer partition();
+    Integer partition();
 
-    public Long offset();
+    Long offset();
 
-    public byte[] record();
+    byte[] record();
 }
