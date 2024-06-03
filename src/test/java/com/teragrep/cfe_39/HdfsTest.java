@@ -45,6 +45,8 @@
  */
 package com.teragrep.cfe_39;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.teragrep.cfe_39.avro.SyslogRecord;
 import com.teragrep.cfe_39.consumers.kafka.HDFSWrite;
 import com.teragrep.cfe_39.consumers.kafka.HdfsDataIngestion;
@@ -175,15 +177,15 @@ public class HdfsTest {
                         lastRecord.getOffset(),
                         null
                 ); // Fetch input parameters from the lastRecord SyslogRecord-object.
+                JsonObject lastObjectJo = JsonParser.parseString(lastObject.offsetToJSON()).getAsJsonObject();
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER
                             .debug(
                                     "\n" + "Last record in the " + syslogFile.getName() + " file:" + "\ntopic: "
-                                            + lastObject.topic() + "\npartition: " + lastObject.partition()
-                                            + "\noffset: " + lastObject.offset()
+                                            + lastObjectJo.get("topic").getAsString() + "\npartition: " + lastObjectJo.get("partition").getAsString() + "\noffset: " + lastObjectJo.get("offset").getAsString()
                             );
                 }
-                try (HDFSWrite writer = new HDFSWrite(config, lastObject)) {
+                try (HDFSWrite writer = new HDFSWrite(config, lastObject, lastObjectJo)) {
                     writer.commit(syslogFile, -1L); // commits the final AVRO-file to HDFS.
                 }
                 catch (IOException e) {

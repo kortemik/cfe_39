@@ -49,11 +49,7 @@ public interface Offset {
 
     boolean isNull();
 
-    String topic();
+    byte[] getRecord();
 
-    Integer partition();
-
-    Long offset();
-
-    byte[] record();
+    String offsetToJSON();
 }

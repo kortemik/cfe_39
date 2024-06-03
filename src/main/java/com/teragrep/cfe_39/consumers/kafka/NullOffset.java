@@ -54,22 +54,12 @@ public final class NullOffset implements Offset {
     }
 
     @Override
-    public String topic() {
-        return "Not available";
-    }
-
-    @Override
-    public Integer partition() {
-        return 0;
-    }
-
-    @Override
-    public Long offset() {
-        return 0L;
-    }
-
-    @Override
-    public byte[] record() {
+    public byte[] getRecord() {
         return new byte[0];
+    }
+
+    @Override
+    public String offsetToJSON() {
+        return "{\"topic\":\"Not available\", \"partition\":\"0\", \"offset\":\"0\"}";
     }
 }

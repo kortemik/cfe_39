@@ -66,22 +66,16 @@ public final class RecordOffset implements Offset {
     }
 
     @Override
-    public String topic() {
-        return topic;
-    }
-
-    @Override
-    public Integer partition() {
-        return partition;
-    }
-
-    @Override
-    public Long offset() {
-        return offset;
-    }
-
-    @Override
-    public byte[] record() {
+    public byte[] getRecord() {
         return record;
+    }
+
+    @Override
+    public String offsetToJSON() {
+        return String
+                .format(
+                        "{\"topic\":\"%s\", \"partition\":\"%s\", \"offset\":\"%s\"}", this.topic, this.partition,
+                        this.offset
+                );
     }
 }
