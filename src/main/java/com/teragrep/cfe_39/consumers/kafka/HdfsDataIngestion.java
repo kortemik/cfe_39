@@ -72,7 +72,6 @@ public class HdfsDataIngestion {
     private final org.apache.kafka.clients.consumer.Consumer<byte[], byte[]> kafkaConsumer;
     private final List<Thread> threads = new ArrayList<>();
     private final Set<String> activeTopics = new HashSet<>();
-    private final DurationStatistics durationStatistics = new DurationStatistics();
     private boolean keepRunning;
     private boolean useMockKafkaConsumer;
     private final int numOfConsumers;
@@ -100,7 +99,8 @@ public class HdfsDataIngestion {
 
     public void run() throws InterruptedException {
 
-        // register duration statistics
+        // Initialize and register duration statistics
+        DurationStatistics durationStatistics = new DurationStatistics();
         durationStatistics.register();
 
         // register per topic counting
@@ -145,8 +145,12 @@ public class HdfsDataIngestion {
     }
 
     // Creates kafka topic consumer based on input parameters.
-    private void createReader(String topic, List<PartitionInfo> listPartitionInfo, List<TopicCounter> topicCounters)
-            throws SQLException {
+    private void createReader(
+            String topic,
+            List<PartitionInfo> listPartitionInfo,
+            List<TopicCounter> topicCounters,
+            DurationStatistics durationStatistics
+    ) throws SQLException {
 
         // Create a new topicCounter object for the topic that has not been added to topicCounters-list yet.
         TopicCounter topicCounter = new TopicCounter(topic);
@@ -203,7 +207,7 @@ public class HdfsDataIngestion {
         foundPartitions.forEach((k, v) -> {
             LOGGER.debug("Activating topic <{}>", k);
             try {
-                createReader(k, v, topicCounters);
+                createReader(k, v, topicCounters, durationStatistics);
                 activeTopics.add(k);
                 durationStatistics.addAndGetThreads(1);
             }
