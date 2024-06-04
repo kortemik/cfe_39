@@ -45,6 +45,9 @@
  */
 package com.teragrep.cfe_39.consumers.kafka.queue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -52,9 +55,14 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.function.BiPredicate;
+import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
 
 public class WritableQueue {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WritableQueue.class);
 
     private final Path queueDirectory;
     private String queueNamePrefix;
@@ -62,16 +70,21 @@ public class WritableQueue {
     public WritableQueue(String queueDirectory) {
         this.queueDirectory = Paths.get(queueDirectory);
         this.queueNamePrefix = "";
-        QueueUtilities.accessCheck(this.queueDirectory);
+        if (!Files.isDirectory(this.queueDirectory)) {
+            throw new IllegalArgumentException("Provided path is not a " + "directory <[" + queueDirectory + "]>");
+        }
+        if (!Files.isWritable(this.queueDirectory)) {
+            throw new IllegalArgumentException("Provided path is not " + "writeable <[" + queueDirectory + "]>");
+        }
     }
 
     private File getNextWritableFilename() throws IOException {
 
         try (
-                Stream<Path> files = Files.find(queueDirectory, 1, QueueUtilities.getFileMatcher(queueNamePrefix), FileVisitOption.FOLLOW_LINKS)
+                Stream<Path> files = Files.find(queueDirectory, 1, getFileMatcher(queueNamePrefix), FileVisitOption.FOLLOW_LINKS)
         ) {
 
-            long sequenceNumber = files.mapToLong(QueueUtilities.getPathToSequenceNumberFunction()).max().orElse(0);
+            long sequenceNumber = files.mapToLong(getPathToSequenceNumberFunction()).max().orElse(0);
 
             long nextSequenceNumber = sequenceNumber + 1;
 
@@ -97,5 +110,35 @@ public class WritableQueue {
 
     public void setQueueNamePrefix(String a) {
         this.queueNamePrefix = a;
+    }
+
+    private BiPredicate<Path, BasicFileAttributes> getFileMatcher(String queueNamePrefix) {
+        return (path, basicFileAttributes) -> {
+            if (!path.getFileName().toString().startsWith(queueNamePrefix)) {
+                return false;
+            }
+            else if (path.getFileName().toString().endsWith(".state")) {
+                return false;
+            }
+            else if (!basicFileAttributes.isRegularFile()) {
+                return false;
+            }
+            else {
+                LOGGER.trace("getFileMatcher returning: <{}>", path);
+                return true;
+            }
+        };
+    }
+
+    private ToLongFunction<Path> getPathToSequenceNumberFunction() {
+        return path -> {
+            String pathString = path.toString();
+
+            int dotPosition = pathString.lastIndexOf('.');
+
+            String sequenceNumberString = pathString.substring(dotPosition + 1);
+
+            return Long.parseLong(sequenceNumberString);
+        };
     }
 }
