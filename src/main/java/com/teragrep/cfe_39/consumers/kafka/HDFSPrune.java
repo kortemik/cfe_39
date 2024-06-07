@@ -150,7 +150,8 @@ public class HDFSPrune {
         cutOffEpoch = System.currentTimeMillis() - pruneOffset; // pruneOffset is parametrized in Config.java. Default value is 2 days in milliseconds.
     }
 
-    public void prune() throws IOException {
+    public int prune() throws IOException {
+        int deleted = 0;
         // Fetch the filestatuses of HDFS files.
         FileStatus[] fileStatuses = fs.listStatus(new Path(newDirectoryPath + "/"));
         if (fileStatuses.length > 0) {
@@ -159,11 +160,13 @@ public class HDFSPrune {
                 if (a.getModificationTime() < cutOffEpoch) {
                     boolean delete = fs.delete(a.getPath(), true);
                     LOGGER.info("Deleted file <{}>", a.getPath());
+                    deleted++;
                 }
             }
         }
         else {
             LOGGER.info("No files found in directory <{}>", new Path(newDirectoryPath + "/"));
         }
+        return deleted;
     }
 }
