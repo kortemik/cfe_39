@@ -160,16 +160,16 @@ public class CombinedFullTest {
             long count = Arrays.stream(fileStatuses).count();
             Assertions.assertTrue(count > 0);
 
-                for (FileStatus a : fileStatuses) {
-                    // Delete old files
-                    if (a.getModificationTime() < System.currentTimeMillis()) {
-                        boolean deleted = fs.delete(a.getPath(), true);
-                        Assertions.assertTrue(deleted);
-                        LOGGER.info("Deleted file {}", a.getPath());
-                        LOGGER.debug("Timestamp was {}", a.getModificationTime()); // example: 1717582386630 milliseconds which translates to Wednesday, June 5, 2024 1:13:06.630 PM GMT+03:00 DST
-                    }
+            for (FileStatus a : fileStatuses) {
+                // Delete old files
+                if (a.getModificationTime() < System.currentTimeMillis()) {
+                    boolean deleted = fs.delete(a.getPath(), true);
+                    Assertions.assertTrue(deleted);
+                    LOGGER.info("Deleted file {}", a.getPath());
+                    LOGGER.debug("Timestamp was {}", a.getModificationTime()); // example: 1717582386630 milliseconds which translates to Wednesday, June 5, 2024 1:13:06.630 PM GMT+03:00 DST
                 }
-                LOGGER.info("All files were pruned properly.");
+            }
+            LOGGER.info("All files were pruned properly.");
         });
     }
 
@@ -199,7 +199,7 @@ public class CombinedFullTest {
 
             /* This is the HDFS write path for the files:
              Path hdfswritepath = new Path(newDirectoryPath + "/" + fileName); where newDirectoryPath is config.getHdfsPath() + "/" + lastObject.topic; and filename is lastObject.partition+"."+lastObject.offset;
-
+            
              Create the list of files to read from HDFS. Test setup is created so each of the 0-9 partitions will have 1 file with offset of 13.*/
             List<String> filenameList = new ArrayList<>();
             for (int i = 0; i <= 9; i++) {
@@ -457,7 +457,10 @@ public class CombinedFullTest {
                 // Set a/b to something like 157784760000 to trigger pruning.
                 if (Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.9")) {
                     fs.setTimes(hdfswritepath, a, -1);
-                } else if (Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.13")) {
+                }
+                else if (
+                    Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.13")
+                ) {
                     fs.setTimes(hdfswritepath, b, -1);
                 }
                 LOGGER.debug("End Write file into hdfs");
