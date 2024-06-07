@@ -71,7 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class PruningTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CombinedFullTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PruningTest.class);
     private static MiniDFSCluster hdfsCluster;
     private static File baseDir;
     private static Config config;
@@ -102,7 +102,6 @@ public class PruningTest {
             // Set HADOOP user
             System.setProperty("HADOOP_USER_NAME", "hdfs");
             System.setProperty("hadoop.home.dir", "/");
-            String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
             fs = FileSystem.get(URI.create(hdfsURI), fsConf);
         });
 
@@ -111,44 +110,146 @@ public class PruningTest {
     // Teardown the minicluster
     @AfterEach
     public void teardownMiniCluster() {
-        assertDoesNotThrow(() -> {
-            fs.close();
-        });
+        assertDoesNotThrow(fs::close);
         hdfsCluster.shutdown();
         FileUtil.fullyDelete(baseDir);
     }
 
-    /* TODO: Create more extensive tests based on happyTest:
-     - HDFS has 1 file already inside it that is timestamped as young enough that it is not pruned.
-     - HDFS has 2 files already inside it that are timestamped as young enough that they are not pruned. happyTest()
-     - HDFS has 1 file already inside it that is timestamped as old enough for pruning to trigger.
-     - HDFS has 2 files already inside it that are timestamped as old enough for pruning to trigger.
-     - HDFS has 2 files already inside it where one file is old enough to be pruned and the other one is not.*/
-
     @Test
-    public void happyTest() {
-        // Test for not triggering pruning for files in the topic.
+    public void twoNewFiles() {
+        // Test for not triggering pruning for 2 files in the topic.
         Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
-        insertMockFiles(-1, -1); // Insert 2 mock files normally with young timestamps so pruning should not trigger on them.
+        insertMockFiles(-1, -1); // Insert 2 mock files with new timestamps so pruning should not trigger on them.
 
         assertDoesNotThrow(() -> {
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
             HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
             int deleted = hdfsPrune.prune();
             Assertions.assertEquals(0, deleted);
             // Also check with HDFS access if expected files still exist.
+            Assertions
+                    .assertEquals(2, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
         });
     }
 
+    @Test
+    public void noFiles() {
+        assertDoesNotThrow(() -> {
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            int deleted = hdfsPrune.prune();
+            Assertions.assertEquals(0, deleted);
+            Assertions
+                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+        });
+    }
+
+    @Test
+    public void twoOldFiles() {
+        // Test for triggering pruning for 2 files in the topic.
+        Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
+        Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
+        insertMockFiles(157784760000L, 157784760000L); // Insert 2 mock files with old timestamps so pruning should trigger on them.
+
+        assertDoesNotThrow(() -> {
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(2, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            int deleted = hdfsPrune.prune();
+            Assertions.assertEquals(2, deleted);
+            // Also check with HDFS access if expected files still exist.
+            Assertions
+                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            Assertions
+                    .assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
+        });
+    }
+
+    @Test
+    public void oneOldOneNewFile() {
+        // Test for triggering pruning for 1 out of 2 files in the topic.
+        Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
+        Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
+        insertMockFiles(157784760000L, -1); // Insert 2 mock files, one with old timestamp and one with new timestamp.
+
+        assertDoesNotThrow(() -> {
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(2, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            int deleted = hdfsPrune.prune();
+            Assertions.assertEquals(1, deleted);
+            // Also check with HDFS access if expected files still exist.
+            Assertions
+                    .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
+        });
+    }
+
+    @Test
+    public void oneOldFile() {
+        // Test for triggering pruning for a single file.
+        Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
+        Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
+        insertMockFile(157784760000L); // Insert 1 old mock file.
+
+        assertDoesNotThrow(() -> {
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            int deleted = hdfsPrune.prune();
+            Assertions.assertEquals(1, deleted);
+            // Also check with HDFS access if expected files still exist.
+            Assertions
+                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+        });
+    }
+
+    @Test
+    public void oneNewFile() {
+        // Test for not triggering pruning for a single file.
+        Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
+        Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
+        insertMockFile(-1); // Insert 1 new mock file.
+
+        assertDoesNotThrow(() -> {
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            int deleted = hdfsPrune.prune();
+            Assertions.assertEquals(0, deleted);
+            // Also check with HDFS access if expected files still exist.
+            Assertions
+                    .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
+        });
+    }
+
     // Inserts pre-made avro-files to HDFS, which are normally generated during data ingestion from mock kafka consumer.
-    private void insertMockFiles(long a, long b) {
+    private void insertMockFiles(long fileTimestampA, long fileTimestampB) {
         String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
         //Get the filesystem - HDFS
         assertDoesNotThrow(() -> {
 
-            //==== Create directory if not exists
-            Path workingDir = fs.getWorkingDirectory();
             // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
             Path newDirectoryPath = new Path(path);
             if (!fs.exists(newDirectoryPath)) {
@@ -171,26 +272,58 @@ public class PruningTest {
                 LOGGER.debug("Begin Write file into hdfs");
                 //Create a path
                 Path hdfswritepath = new Path(newDirectoryPath + "/" + avroFile.getName()); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
-                if (fs.exists(hdfswritepath)) {
-                    Assertions.fail("File " + avroFile.getName() + " already exists");
-                }
+                Assertions.assertFalse(fs.exists(hdfswritepath));
                 Path readPath = new Path(avroFile.getPath());
-                // Add conditions if file filtering is required for tests.
                 fs.copyFromLocalFile(readPath, hdfswritepath);
-                // Set a/b to something like 157784760000 to trigger pruning.
+                // Set fileTimestampA/fileTimestampB to something like 157784760000 to trigger pruning, -1 to not alter the timestamp.
                 if (Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.9")) {
-                    fs.setTimes(hdfswritepath, a, -1);
+                    fs.setTimes(hdfswritepath, fileTimestampA, -1);
                 }
                 else if (
                     Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.13")
                 ) {
-                    fs.setTimes(hdfswritepath, b, -1);
+                    fs.setTimes(hdfswritepath, fileTimestampB, -1);
                 }
                 LOGGER.debug("End Write file into hdfs");
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath.toString());
-                }
+                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath);
             }
+        });
+    }
+
+    // Inserts a single pre-made avro-file to HDFS, which is normally generated during data ingestion from mock kafka consumer.
+    private void insertMockFile(long fileTimestamp) {
+        String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
+        assertDoesNotThrow(() -> {
+
+            // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
+            Path newDirectoryPath = new Path(path);
+            if (!fs.exists(newDirectoryPath)) {
+                // Create new Directory
+                fs.mkdirs(newDirectoryPath);
+                LOGGER.debug("Path {} created.", path);
+            }
+
+            String dir = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
+            Set<String> listOfFiles = Stream
+                    .of(Objects.requireNonNull(new File(dir).listFiles()))
+                    .filter(file -> !file.isDirectory())
+                    .map(File::getName)
+                    .collect(Collectors.toSet());
+            String fileName = "0.9";
+            Assertions.assertTrue(listOfFiles.contains(fileName));
+            String pathname = dir + "/" + fileName;
+            File avroFile = new File(pathname);
+            //==== Write file
+            LOGGER.debug("Begin Write file into hdfs");
+            //Create a path
+            Path hdfswritepath = new Path(newDirectoryPath + "/" + avroFile.getName()); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
+            Assertions.assertFalse(fs.exists(hdfswritepath));
+            Path readPath = new Path(avroFile.getPath());
+            fs.copyFromLocalFile(readPath, hdfswritepath);
+            // Set fileTimestamp to something like 157784760000 to trigger pruning, -1 to not alter the timestamp.
+            fs.setTimes(hdfswritepath, fileTimestamp, -1);
+            LOGGER.debug("End Write file into hdfs");
+            LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath);
         });
     }
 
