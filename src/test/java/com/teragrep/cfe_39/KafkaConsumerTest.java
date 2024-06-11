@@ -45,252 +45,500 @@
  */
 package com.teragrep.cfe_39;
 
-import com.teragrep.cfe_39.consumers.kafka.HdfsDataIngestion;
-import org.apache.avro.file.DataFileReader;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.specific.SpecificDatumReader;
+import com.teragrep.cfe_39.consumers.kafka.ReadCoordinator;
+import com.teragrep.cfe_39.consumers.kafka.RecordOffset;
+import com.teragrep.rlo_06.RFC5424Frame;
+import org.apache.kafka.common.TopicPartition;
 import org.junit.jupiter.api.Assertions;
-import com.teragrep.cfe_39.avro.SyslogRecord;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import java.io.File;
+import java.io.ByteArrayInputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class KafkaConsumerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumerTest.class);
-    // Make sure application.properties has consumer.useMockKafkaConsumer=true enabled for Kafka testing.
 
-    @Disabled
     @Test
-    public void configTest() {
-        // Configuration tests done, configurations working correctly with the right .jaas and .properties files.
+    public void readCoordinatorTest2Threads() {
         assertDoesNotThrow(() -> {
             Config config = new Config();
-            Properties readerKafkaProperties = config.getKafkaConsumerProperties();
-            // Test extracting useMockKafkaConsumer value from config.
-            boolean useMockKafkaConsumer = Boolean
-                    .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
-            LOGGER.debug("useMockKafkaConsumer: " + useMockKafkaConsumer);
-        });
-    }
+            Map<TopicPartition, Long> hdfsStartOffsets = new HashMap<>();
+            ArrayList<List<RecordOffset>> messages = new ArrayList<>();
+            Consumer<List<RecordOffset>> output = message -> messages.add(message);
 
-    @Disabled
-    @Test
-    public void kafkaAndAvroFullTest() {
-        assertDoesNotThrow(() -> {
-            Config config = new Config();
-            config.setMaximumFileSize(3000); // 10 loops (140 records) are in use at the moment, and that is sized at 36,102 bytes.
-            HdfsDataIngestion hdfsDataIngestion = new HdfsDataIngestion(config);
-            hdfsDataIngestion.run();
-            int counter = avroReader(1, 2);
-            Assertions.assertEquals(140, counter);
-            cleanup(config, 1, 2);
-        });
-    }
+            ReadCoordinator readCoordinator = new ReadCoordinator(
+                    "testConsumerTopic",
+                    config.getKafkaConsumerProperties(),
+                    output,
+                    hdfsStartOffsets
+            );
+            Thread readThread = new Thread(null, readCoordinator, "testConsumerTopic1"); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
+            readThread.start(); // Starts the thread, in other words proceeds to call run() function of ReadCoordinator.
 
-    // Reads the data from a list of avro files
-    public int avroReader(int start, int end) {
-        return assertDoesNotThrow(() -> {
-            // Deserialize Users from disk
-            Config config = new Config();
-            Path queueDirectory = Paths.get(config.getQueueDirectory());
-            int looper = 0;
-            int counter = 0;
-            int partitionCounter = 0;
-            for (int j = 0; j <= 9; j++) {
-                for (int i = start; i <= end; i++) {
-                    File syslogFile = new File(
-                            queueDirectory.toAbsolutePath() + File.separator + "testConsumerTopic" + j + "." + i
+            Thread.sleep(1000);
+
+            ReadCoordinator readCoordinator2 = new ReadCoordinator(
+                    "testConsumerTopic",
+                    config.getKafkaConsumerProperties(),
+                    output,
+                    hdfsStartOffsets
+            );
+            Thread readThread2 = new Thread(null, readCoordinator2, "testConsumerTopic2"); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
+            readThread2.start(); // Starts the thread, in other words proceeds to call run() function of ReadCoordinator.
+
+            Thread.sleep(10000);
+            Assertions.assertEquals(2, messages.size());
+            Assertions.assertEquals(140, messages.get(0).size() + messages.get(1).size()); // Assert that expected amount of records has been consumed by the consumer group.
+            Assertions.assertEquals(70, messages.get(0).size());
+            Assertions.assertEquals(70, messages.get(1).size());
+
+            // Assert that all the record contents are correct, every topic partition has identical set of offset-message pairings.
+            List<String> messageList = new ArrayList<String>();
+            messageList.add("[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!");
+            messageList.add("[ERROR] 2022-04-25 07:34:50,806 com.teragrep.jla_02.Log4j Log - Log4j error says hi!");
+            messageList.add("470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Daily - Logback-daily says hi.");
+            messageList.add("470646  [Thread-3] INFO  com.teragrep.jla_02.Logback Audit - Logback-audit says hi.");
+            messageList.add("470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Metric - Logback-metric says hi.");
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.238 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info audit says hi!]"
                     );
-                    DatumReader<SyslogRecord> userDatumReader = new SpecificDatumReader<>(SyslogRecord.class);
-                    try (
-                            DataFileReader<SyslogRecord> dataFileReader = new DataFileReader<>(
-                                    syslogFile,
-                                    userDatumReader
-                            )
-                    ) {
-                        SyslogRecord user = null;
-                        while (dataFileReader.hasNext()) {
-                            user = dataFileReader.next(user);
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug(syslogFile.getPath());
-                                LOGGER.debug(user.toString());
-                            }
-                            counter++;
-                            // All the mock data is generated from a set of 14 records.
-                            if (looper <= 0) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872090804000, \"message\": \"[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 0, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 1) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872090806000, \"message\": \"[ERROR] 2022-04-25 07:34:50,806 com.teragrep.jla_02.Log4j Log - Log4j error says hi!\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 1, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 2) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872090822000, \"message\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Daily - Logback-daily says hi.\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 2, \"origin\": \"jla-02\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 3) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872090822000, \"message\": \"470646  [Thread-3] INFO  com.teragrep.jla_02.Logback Audit - Logback-audit says hi.\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 3, \"origin\": \"jla-02\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 4) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872090822000, \"message\": \"470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Metric - Logback-metric says hi.\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 4, \"origin\": \"jla-02\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 5) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092238000, \"message\": \"25.04.2022 07:34:52.238 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info audit says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 5, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 6) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092239000, \"message\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info daily says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 6, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 7) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092239000, \"message\": \"25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info metric says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 7, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 8) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092240000, \"message\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 8, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 9) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092240000, \"message\": \"25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn daily says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 9, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 10) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092241000, \"message\": \"25.04.2022 07:34:52.241 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn metric says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 10, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 11) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092241000, \"message\": \"25.04.2022 07:34:52.241 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error audit says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 11, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else if (looper == 12) {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092242000, \"message\": \"25.04.2022 07:34:52.242 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error daily says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 12, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper++;
-                            }
-                            else {
-                                Assertions
-                                        .assertEquals(
-                                                "{\"timestamp\": 1650872092243000, \"message\": \"25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]\", \"directory\": \"jla02logger\", \"stream\": \"test:jla02logger:0\", \"host\": \"jla-02.default\", \"input\": \"imrelp:cfe-06-0.cfe-06.default:\", \"partition\": \""
-                                                        + partitionCounter
-                                                        + "\", \"offset\": 13, \"origin\": \"jla-02.default\"}",
-                                                user.toString()
-                                        );
-                                looper = 0;
-                                partitionCounter++;
-                            }
-                        }
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info daily says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info metric says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn daily says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.241 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn metric says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.241 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error audit says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.242 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error daily says hi!]"
+                    );
+            messageList
+                    .add(
+                            "25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]"
+                    );
 
-                    }
-                }
+            RFC5424Frame rfc5424Frame = new RFC5424Frame(false);
+
+            RecordOffset recordOffset;
+
+            Iterator<String> iterator = messageList.iterator();
+            int counter = 0;
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"7\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
             }
-            LOGGER.debug("Total number of records: " + counter);
-            return counter;
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"5\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"3\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"1\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"9\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            Assertions.assertEquals(70, counter);
+
+            counter = 0;
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(1).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"8\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(1).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"6\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(1).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"4\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(1).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"2\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = messageList.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(1).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+            Assertions.assertEquals(70, counter);
+
         });
     }
 
-    // Deletes the avro-files that were created during testing.
-    public void cleanup(Config config, int start, int end) {
-        Path queueDirectory = Paths.get(config.getQueueDirectory());
-        for (int j = 0; j <= 9; j++) {
-            for (int i = start; i <= end; i++) {
-                File syslogFile = new File(
-                        queueDirectory.toAbsolutePath() + File.separator + "testConsumerTopic" + j + "." + i
-                );
-                assertDoesNotThrow(() -> {
-                    boolean result = Files.deleteIfExists(syslogFile.toPath());
-                });
+    @Test
+    public void readCoordinatorTest1Thread() {
+        assertDoesNotThrow(() -> {
+            Config config = new Config();
+            Map<TopicPartition, Long> hdfsStartOffsets = new HashMap<>();
+            ArrayList<List<RecordOffset>> messages = new ArrayList<>();
+            Consumer<List<RecordOffset>> output = message -> messages.add(message);
+
+            ReadCoordinator readCoordinator = new ReadCoordinator(
+                    "testConsumerTopic",
+                    config.getKafkaConsumerProperties(),
+                    output,
+                    hdfsStartOffsets
+            );
+            Thread readThread = new Thread(null, readCoordinator, "testConsumerTopic0"); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
+            readThread.start(); // Starts the thread, in other words proceeds to call run() function of ReadCoordinator.
+
+            Thread.sleep(10000);
+            Assertions.assertEquals(1, messages.size());
+            Assertions.assertEquals(140, messages.get(0).size()); // Assert that expected amount of records has been consumed by the consumer.
+
+            // Assert that all the record contents are correct, every topic partition has identical set of offset-message pairings.
+            List<String> list = new ArrayList<String>();
+            list.add("[WARN] 2022-04-25 07:34:50,804 com.teragrep.jla_02.Log4j Log - Log4j warn says hi!");
+            list.add("[ERROR] 2022-04-25 07:34:50,806 com.teragrep.jla_02.Log4j Log - Log4j error says hi!");
+            list.add("470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Daily - Logback-daily says hi.");
+            list.add("470646  [Thread-3] INFO  com.teragrep.jla_02.Logback Audit - Logback-audit says hi.");
+            list.add("470647  [Thread-3] INFO  com.teragrep.jla_02.Logback Metric - Logback-metric says hi.");
+            list
+                    .add(
+                            "25.04.2022 07:34:52.238 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info audit says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info daily says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.239 [INFO] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 info metric says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn audit says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.240 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn daily says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.241 [WARN] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 warn metric says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.241 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error audit says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.242 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error daily says hi!]"
+                    );
+            list
+                    .add(
+                            "25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]"
+                    );
+
+            RFC5424Frame rfc5424Frame = new RFC5424Frame(false);
+
+            RecordOffset recordOffset;
+
+            Iterator<String> iterator = list.iterator();
+            int counter = 0;
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"7\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
             }
-        }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"8\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertTrue(iterator.hasNext());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"5\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"6\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"3\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"4\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"1\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"2\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            iterator = list.iterator();
+            for (int i = 0; i <= 13; i++) {
+                recordOffset = messages.get(0).get(counter);
+                Assertions
+                        .assertEquals(
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"9\", \"offset\":\"" + i + "\"}",
+                                recordOffset.offsetToJSON()
+                        );
+                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                Assertions.assertTrue(rfc5424Frame.next());
+                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                Assertions.assertFalse(rfc5424Frame.next());
+                counter++;
+            }
+
+            Assertions.assertEquals(140, counter); // All 140 records asserted.
+
+        });
     }
+
 }

@@ -89,8 +89,11 @@ public class ReadCoordinator implements Runnable {
             if (Objects.equals(name, "testConsumerTopic1")) {
                 kafkaConsumer = MockKafkaConsumerFactory.getConsumer(1); // creates a Kafka MockConsumer that has the odd numbered partitions assigned to it.
             }
-            else {
+            else if (Objects.equals(name, "testConsumerTopic2")) {
                 kafkaConsumer = MockKafkaConsumerFactory.getConsumer(2); // creates a Kafka MockConsumer that has the even numbered partitions assigned to it.
+            }
+            else {
+                kafkaConsumer = MockKafkaConsumerFactory.getConsumer(0); // Creates a single Kafka MockConsumer that has all the partitions assigned to it.
             }
         }
         else { // Mock kafka consumer is disabled, subscribe method should handle assigning the partitions automatically to the consumer based on group id parameters of readerKafkaProperties.
