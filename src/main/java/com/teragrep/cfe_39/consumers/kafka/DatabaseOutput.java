@@ -97,7 +97,12 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     private final Config config;
     private long epochMicros_last;
 
-    DatabaseOutput(Config config, String table, DurationStatistics durationStatistics, TopicCounter topicCounter) {
+    public DatabaseOutput(
+            Config config,
+            String table,
+            DurationStatistics durationStatistics,
+            TopicCounter topicCounter
+    ) {
         this.config = config;
         this.table = table;
         this.durationStatistics = durationStatistics;
