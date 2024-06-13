@@ -69,7 +69,7 @@ public class HDFSWrite implements AutoCloseable {
     private final Configuration conf;
     private final String hdfsuri;
 
-    public HDFSWrite(Config config, RecordOffset lastObject, JsonObject lastObjectJo) throws IOException {
+    public HDFSWrite(Config config, JsonObject lastObjectJo) throws IOException {
 
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
         this.useMockKafkaConsumer = Boolean
@@ -141,7 +141,7 @@ public class HDFSWrite implements AutoCloseable {
     }
 
     // Method for committing the AVRO-file to HDFS
-    public void commit(File syslogFile, long lastEpochMicros) {
+    public void commit(File syslogFile) {
         // The code for writing the file to HDFS should be same for both test (non-kerberized access) and prod (kerberized access).
         try {
             //==== Create directory if not exists
