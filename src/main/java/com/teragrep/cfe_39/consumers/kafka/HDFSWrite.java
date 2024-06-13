@@ -159,10 +159,16 @@ public class HDFSWrite implements AutoCloseable {
             //Create a path
             Path hdfswritepath = new Path(newDirectoryPath.toString() + "/" + fileName); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
             if (fs.exists(hdfswritepath)) {
+                LOGGER
+                        .debug(
+                                "Deleting the seemingly duplicate source file {} because target file {} already exists in HDFS",
+                                syslogFile.getPath(), hdfswritepath
+                        );
+                syslogFile.delete();
                 throw new RuntimeException("File " + fileName + " already exists");
             }
             else {
-                LOGGER.info("Path <{}> doesn't exist.", path);
+                LOGGER.debug("Target file <{}> doesn't exist, proceeding normally.", hdfswritepath);
             }
 
             Path path = new Path(syslogFile.getPath());
