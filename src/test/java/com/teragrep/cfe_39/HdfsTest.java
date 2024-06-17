@@ -100,17 +100,7 @@ public class HdfsTest {
             // Set HADOOP user
             System.setProperty("HADOOP_USER_NAME", "hdfs");
             System.setProperty("hadoop.home.dir", "/");
-            String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
             fs = FileSystem.get(URI.create(hdfsURI), fsConf);
-            //==== Create directory if not exists
-            Path workingDir = fs.getWorkingDirectory();
-            // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
-            Path newDirectoryPath = new Path(path);
-            if (!fs.exists(newDirectoryPath)) {
-                // Create new Directory
-                fs.mkdirs(newDirectoryPath);
-                LOGGER.debug("Path {} created.", path);
-            }
         });
     }
 
@@ -128,8 +118,7 @@ public class HdfsTest {
     public void hdfsWriteTest() {
         // Tests HDFSWrite.java functionality by committing pre-generated AVRO-files to HDFS and assert if it worked as expected.
         assertDoesNotThrow(() -> {
-            Assertions
-                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 
             // writer.commit will delete the file that is given as an input argument. Copy the mock files to another directory so the deletion can be asserted properly too.
             String pathname = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles/0.9";
@@ -176,8 +165,7 @@ public class HdfsTest {
     public void hdfsWriteExceptionTest() {
         // File already exists exception test, commits the same file twice to trigger the exception.
         assertDoesNotThrow(() -> {
-            Assertions
-                    .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 
             // writer.commit will delete the source file that is given as an input argument. Copy the mock file to another directory so the deletion of the source file can be asserted properly.
             String pathname = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles/0.9";

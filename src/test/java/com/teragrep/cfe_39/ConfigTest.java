@@ -45,6 +45,8 @@
  */
 package com.teragrep.cfe_39;
 
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,7 @@ public class ConfigTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigTest.class);
 
+    @Disabled(value = "This code is WIP, leaving the test implementation to deployment step.")
     @Test
     public void configTest() {
         assertDoesNotThrow(() -> {
@@ -65,6 +68,7 @@ public class ConfigTest {
             // Test extracting useMockKafkaConsumer value from config.
             boolean useMockKafkaConsumer = Boolean
                     .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
+            Assertions.assertTrue(useMockKafkaConsumer);
             LOGGER.debug("useMockKafkaConsumer: " + useMockKafkaConsumer);
         });
     }

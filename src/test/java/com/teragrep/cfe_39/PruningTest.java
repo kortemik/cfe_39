@@ -122,7 +122,8 @@ public class PruningTest {
         insertMockFiles(-1, -1); // Insert 2 mock files with new timestamps so pruning should not trigger on them.
 
         assertDoesNotThrow(() -> {
-            Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+            Assertions
+                    .assertEquals(2, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
             HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");

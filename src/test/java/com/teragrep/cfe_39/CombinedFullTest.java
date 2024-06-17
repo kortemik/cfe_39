@@ -100,17 +100,7 @@ public class CombinedFullTest {
             // Set HADOOP user
             System.setProperty("HADOOP_USER_NAME", "hdfs");
             System.setProperty("hadoop.home.dir", "/");
-            String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
             fs = FileSystem.get(URI.create(hdfsURI), fsConf);
-            //==== Create directory if not exists
-            Path workingDir = fs.getWorkingDirectory();
-            // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
-            Path newDirectoryPath = new Path(path);
-            if (!fs.exists(newDirectoryPath)) {
-                // Create new Directory
-                fs.mkdirs(newDirectoryPath);
-                LOGGER.debug("Path {} created.", path);
-            }
         });
     }
 
@@ -130,11 +120,13 @@ public class CombinedFullTest {
         assertDoesNotThrow(() -> {
             Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct.
             config.setMaximumFileSize(30000); // This parameter defines the amount of records that can fit inside a single AVRO-file.
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
             HdfsDataIngestion hdfsDataIngestion = new HdfsDataIngestion(config);
             Thread.sleep(10000);
             hdfsDataIngestion.run();
-            // Assert that the kafka records were ingested correctly and the database holds the correct 140 records.
         });
+
+        // Assert that the kafka records were ingested correctly and the database holds the correct 140 records.
 
         // Check that the files were properly written to HDFS.
         String hdfsuri = config.getHdfsuri();
@@ -152,7 +144,7 @@ public class CombinedFullTest {
         System.setProperty("hadoop.home.dir", "/");
         //Get the filesystem - HDFS
         assertDoesNotThrow(() -> {
-            FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
+            fs = FileSystem.get(URI.create(hdfsuri), conf);
 
             Path workingDir = fs.getWorkingDirectory();
             Path newDirectoryPath = new Path(path);
@@ -339,9 +331,12 @@ public class CombinedFullTest {
 
     @Test
     public void ingestionTest2OldFiles() {
-        /* 14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion.
+        /* 14 records are inserted to HDFS database before starting ingestion, with 126/140 records in mock kafka consumer ready for ingestion.
          Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13).
          partition 0 files are pre-made and inserted to the HDFS database with old timestamps that will mark them for pruning when ingestion is started.*/
+        assertDoesNotThrow(() -> {
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+        });
         insertMockFiles(157784760000L, 157784760000L); // Insert 2 mock files (0.9 and 0.13) with old timestamps so pruning should trigger on them.
 
         assertDoesNotThrow(() -> {
@@ -395,6 +390,9 @@ public class CombinedFullTest {
         /* 14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion.
          Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13).
          partition 0 files are pre-made and inserted to the HDFS database with old timestamp for file 0.9 and new for 0.13.*/
+        assertDoesNotThrow(() -> {
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+        });
         insertMockFiles(157784760000L, -1); // Insert 2 mock files (0.9 and 0.13) with old timestamp on 0.9 and new timestamp on 0.13.
 
         assertDoesNotThrow(() -> {
@@ -445,6 +443,9 @@ public class CombinedFullTest {
     @Test
     public void ingestionTest2NewFiles() {
         // 14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion. Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13).
+        assertDoesNotThrow(() -> {
+            Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
+        });
         insertMockFiles(-1, -1); // Insert 2 mock files (0.9 and 0.13) with new timestamps so pruning should not trigger on them.
 
         assertDoesNotThrow(() -> {
@@ -506,7 +507,7 @@ public class CombinedFullTest {
         System.setProperty("hadoop.home.dir", "/");
         //Get the filesystem - HDFS
         assertDoesNotThrow(() -> {
-            FileSystem fs = FileSystem.get(URI.create(hdfsuri), conf);
+            fs = FileSystem.get(URI.create(hdfsuri), conf);
 
             Path workingDir = fs.getWorkingDirectory();
             Path newDirectoryPath = new Path(path);
