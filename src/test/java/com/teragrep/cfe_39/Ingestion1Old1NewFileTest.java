@@ -103,7 +103,35 @@ public class Ingestion1Old1NewFileTest {
             System.setProperty("HADOOP_USER_NAME", "hdfs");
             System.setProperty("hadoop.home.dir", "/");
             fs = FileSystem.get(URI.create(hdfsURI), fsConf);
-            insertMockFiles(157784760000L, -1); // Insert 2 mock files (0.9 and 0.13) with old timestamp on 0.9 and new timestamp on 0.13.
+            // Inserts pre-made avro-files to HDFS where one file has new timestamp and other old, which are normally generated during data ingestion from mock kafka consumer.
+            String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
+            // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
+            Path newDirectoryPath = new Path(path);
+            // Create new Directory
+            fs.mkdirs(newDirectoryPath);
+            LOGGER.debug("Path {} created.", path);
+            String dir = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
+            Set<String> listOfFiles = Stream
+                    .of(Objects.requireNonNull(new File(dir).listFiles()))
+                    .filter(file -> !file.isDirectory())
+                    .map(File::getName)
+                    .collect(Collectors.toSet());
+            // Loop through all the avro files
+            for (String fileName : listOfFiles) {
+                String pathname = dir + "/" + fileName;
+                File avroFile = new File(pathname);
+                //==== Write file
+                LOGGER.debug("Begin Write file into hdfs");
+                //Create a path
+                Path hdfswritepath = new Path(newDirectoryPath + "/" + avroFile.getName()); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
+                Assertions.assertFalse(fs.exists(hdfswritepath));
+                Path readPath = new Path(avroFile.getPath());
+                fs.copyFromLocalFile(readPath, hdfswritepath);
+                LOGGER.debug("End Write file into hdfs");
+                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath);
+            }
+            fs.setTimes(new Path("hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.9"), 157784760000L, -1);
+            fs.setTimes(new Path("hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.13"), -1, -1);
         });
     }
 
@@ -166,52 +194,6 @@ public class Ingestion1Old1NewFileTest {
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "7.13")));
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "8.13")));
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "9.13")));
-        });
-    }
-
-    // Inserts pre-made avro-files to HDFS, which are normally generated during data ingestion from mock kafka consumer.
-    private void insertMockFiles(long fileTimestampA, long fileTimestampB) {
-        String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
-        //Get the filesystem - HDFS
-        assertDoesNotThrow(() -> {
-
-            // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
-            Path newDirectoryPath = new Path(path);
-            if (!fs.exists(newDirectoryPath)) {
-                // Create new Directory
-                fs.mkdirs(newDirectoryPath);
-                LOGGER.debug("Path {} created.", path);
-            }
-
-            String dir = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
-            Set<String> listOfFiles = Stream
-                    .of(Objects.requireNonNull(new File(dir).listFiles()))
-                    .filter(file -> !file.isDirectory())
-                    .map(File::getName)
-                    .collect(Collectors.toSet());
-            // Loop through all the avro files
-            for (String fileName : listOfFiles) {
-                String pathname = dir + "/" + fileName;
-                File avroFile = new File(pathname);
-                //==== Write file
-                LOGGER.debug("Begin Write file into hdfs");
-                //Create a path
-                Path hdfswritepath = new Path(newDirectoryPath + "/" + avroFile.getName()); // filename should be set according to the requirements: 0.12345 where 0 is Kafka partition and 12345 is Kafka offset.
-                Assertions.assertFalse(fs.exists(hdfswritepath));
-                Path readPath = new Path(avroFile.getPath());
-                fs.copyFromLocalFile(readPath, hdfswritepath);
-                // Set fileTimestampA/fileTimestampB to something like 157784760000 to trigger pruning, -1 to not alter the timestamp.
-                if (Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.9")) {
-                    fs.setTimes(hdfswritepath, fileTimestampA, -1);
-                }
-                else if (
-                    Objects.equals(hdfswritepath.toString(), "hdfs:/opt/teragrep/cfe_39/srv/testConsumerTopic/0.13")
-                ) {
-                    fs.setTimes(hdfswritepath, fileTimestampB, -1);
-                }
-                LOGGER.debug("End Write file into hdfs");
-                LOGGER.debug("\nFile committed to HDFS, file writepath should be: {}\n", hdfswritepath);
-            }
         });
     }
 }
