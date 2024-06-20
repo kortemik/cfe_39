@@ -81,7 +81,7 @@ public class Config {
 
     // TODO: Set up configuration check for important parameters.
 
-    Config() throws IOException {
+    public Config() throws IOException {
         Properties properties = new Properties();
         Path configPath = Paths
                 .get(System.getProperty("cfe_30.config.location", System.getProperty("user.dir") + "/etc/application.properties"));
