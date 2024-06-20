@@ -14,7 +14,7 @@ See the official documentation on https://docs.teragrep.com[docs.teragrep.com].
 ## How to [compile/use/implement]
 
 // TODO: add instructions how people can start to use your project, also add more information on the required configuration files.
-mvn clean install
+`mvn clean install`
 
 config.jaas, application.properties and log4j2.properties files have to created to use this module. The files must be placed in the working directory.
 
