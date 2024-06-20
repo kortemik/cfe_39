@@ -124,7 +124,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     }
 
     // Checks that the filesize stays under the defined maximum file size. If the file is about to go over target limit commits the file to HDFS and returns true, otherwise does nothing and returns false.
-    boolean committedToHdfs(long fileSize, JsonObject recordOffsetObjectJo) {
+    private boolean committedToHdfs(long fileSize, JsonObject recordOffsetObjectJo) {
         try {
             // If the syslogAvroWriter is already initialized, check the filesize so it doesn't go above maximumFileSize.
             if (fileSize > maximumFileSize) {
