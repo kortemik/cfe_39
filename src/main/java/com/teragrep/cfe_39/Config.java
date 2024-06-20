@@ -66,7 +66,6 @@ public class Config {
     private final String hdfsPath;
     private String hdfsuri;
     private final String queueDirectory;
-    private final String queueNamePrefix;
     private final String kerberosHost;
     private final String kerberosRealm;
     private final String kerberosPrincipal;
@@ -100,8 +99,7 @@ public class Config {
         this.pruneOffset = Long.parseLong(properties.getProperty("pruneOffset", "172800000"));
 
         // AVRO
-        this.queueDirectory = properties.getProperty("queueDirectory", "");
-        this.queueNamePrefix = properties.getProperty("queueNamePrefix", "");
+        this.queueDirectory = properties.getProperty("queueDirectory", System.getProperty("user.dir") + "/etc/AVRO/");
         this.maximumFileSize = Long.parseLong(properties.getProperty("maximumFileSize", "60800000"));
 
         // kerberos
@@ -164,10 +162,6 @@ public class Config {
 
     public String getQueueDirectory() {
         return queueDirectory;
-    }
-
-    public String getQueueNamePrefix() {
-        return queueNamePrefix;
     }
 
     public String getQueueTopicPattern() {

@@ -109,7 +109,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         this.maximumFileSize = config.getMaximumFileSize();
 
         // queueDirectory and queueNamePrefix are only used for temporarily storing the AVRO-serialized files before committing them to HDFS when the file size reaches the threshold (or all records are processed).
-        this.writableQueue = new WritableQueue(config.getQueueDirectory());
+        this.writableQueue = new WritableQueue(config.getQueueDirectory(), table);
 
         this.sourceConcatenationBuffer = ByteBuffer.allocateDirect(256 * 1024);
         teragrepStreamName = new SDVector("teragrep@48577", "streamname");

@@ -67,9 +67,9 @@ public class WritableQueue {
     private final Path queueDirectory;
     private String queueNamePrefix;
 
-    public WritableQueue(String queueDirectory) {
+    public WritableQueue(String queueDirectory, String queueNamePrefix) {
         this.queueDirectory = Paths.get(queueDirectory);
-        this.queueNamePrefix = "";
+        this.queueNamePrefix = queueNamePrefix;
         if (!Files.isDirectory(this.queueDirectory)) {
             throw new IllegalArgumentException("Provided path is not a " + "directory <[" + queueDirectory + "]>");
         }
