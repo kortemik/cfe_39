@@ -124,7 +124,7 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     }
 
     // Checks that the filesize stays under the defined maximum file size. If the file is about to go over target limit commits the file to HDFS and returns true, otherwise does nothing and returns false.
-    private boolean committedToHdfs(long fileSize, JsonObject recordOffsetObjectJo) {
+    private boolean writeToHdfs(long fileSize, JsonObject recordOffsetObjectJo) {
         try {
             // If the syslogAvroWriter is already initialized, check the filesize so it doesn't go above maximumFileSize.
             if (fileSize > maximumFileSize) {
@@ -135,12 +135,6 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 try (HDFSWrite writer = new HDFSWrite(config, recordOffsetObjectJo)) {
                     writer.commit(syslogFile); // commits the final AVRO-file to HDFS.
                 }
-
-                // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the 64M size limit.
-                writableQueue
-                        .setQueueNamePrefix(recordOffsetObjectJo.get("topic").getAsString() + recordOffsetObjectJo.get("partition").getAsString());
-                syslogFile = writableQueue.getNextWritableFile();
-                syslogAvroWriter = new SyslogAvroWriter(syslogFile);
                 return true;
             }
         }
@@ -212,11 +206,16 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                 try {
                     if (
                         lastObjectJo.get("topic").getAsString().equals(recordOffsetObjectJo.get("topic").getAsString())
-                                & lastObjectJo.get("partition").getAsString().equals(recordOffsetObjectJo.get("partition").getAsString())
+                                && lastObjectJo.get("partition").getAsString().equals(recordOffsetObjectJo.get("partition").getAsString())
                     ) {
                         // Records left to consume in the current partition.
-                        boolean fileCommitted = committedToHdfs(syslogAvroWriter.getFileSize(), lastObjectJo);
+                        boolean fileCommitted = writeToHdfs(syslogAvroWriter.getFileSize(), lastObjectJo);
                         if (fileCommitted) {
+                            // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the size limit defined in config.
+                            writableQueue
+                                    .setQueueNamePrefix(recordOffsetObjectJo.get("topic").getAsString() + recordOffsetObjectJo.get("partition").getAsString());
+                            syslogFile = writableQueue.getNextWritableFile();
+                            syslogAvroWriter = new SyslogAvroWriter(syslogFile);
                             if (LOGGER.isDebugEnabled()) {
                                 LOGGER
                                         .debug(
@@ -291,8 +290,13 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                     // Calculate the size of syslogRecord that is going to be written to syslogAvroWriter-file.
                     long capacity = syslogRecord.toByteBuffer().capacity();
                     // Check if there is still room in syslogAvroWriter for another syslogRecord. Commit syslogAvroWriter to HDFS if no room left, emptying it out in the process.
-                    boolean fileCommitted = committedToHdfs(syslogAvroWriter.getFileSize() + capacity, lastObjectJo);
+                    boolean fileCommitted = writeToHdfs(syslogAvroWriter.getFileSize() + capacity, lastObjectJo);
                     if (fileCommitted) {
+                        // This part defines a new empty file to which the new AVRO-serialized records are stored until it again hits the size limit defined in config.
+                        writableQueue
+                                .setQueueNamePrefix(recordOffsetObjectJo.get("topic").getAsString() + recordOffsetObjectJo.get("partition").getAsString());
+                        syslogFile = writableQueue.getNextWritableFile();
+                        syslogAvroWriter = new SyslogAvroWriter(syslogFile);
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER
                                     .debug(
