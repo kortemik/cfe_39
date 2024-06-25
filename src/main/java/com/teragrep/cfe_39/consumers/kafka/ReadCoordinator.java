@@ -134,9 +134,4 @@ public class ReadCoordinator implements Runnable {
             }
         }
     }
-
-    // FIXME: remove?
-    public void stop() {
-        run = false;
-    }
 }
