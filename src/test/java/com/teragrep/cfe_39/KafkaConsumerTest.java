@@ -152,7 +152,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"7\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":7, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -168,7 +168,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"5\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":5, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -184,7 +184,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"3\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":3, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -200,7 +200,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"1\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":1, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -216,7 +216,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"9\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":9, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -235,7 +235,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(1).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"8\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":8, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -251,7 +251,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(1).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"6\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":6, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -267,7 +267,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(1).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"4\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":4, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -283,7 +283,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(1).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"2\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":2, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -299,7 +299,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(1).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -389,7 +389,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"7\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":7, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -405,7 +405,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"8\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":8, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -421,7 +421,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"5\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":5, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -436,7 +436,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"6\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":6, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -451,7 +451,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"3\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":3, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -466,7 +466,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"4\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":4, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -481,7 +481,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"1\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":1, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -496,7 +496,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"2\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":2, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -511,7 +511,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
@@ -526,7 +526,7 @@ public class KafkaConsumerTest {
                 recordOffset = messages.get(0).get(counter);
                 Assertions
                         .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":\"9\", \"offset\":\"" + i + "\"}",
+                                "{\"topic\":\"testConsumerTopic\", \"partition\":9, \"offset\":" + i + "}",
                                 recordOffset.offsetToJSON()
                         );
                 rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
