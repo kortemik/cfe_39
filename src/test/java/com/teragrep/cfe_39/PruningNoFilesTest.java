@@ -115,7 +115,7 @@ public class PruningNoFilesTest {
     public void noFiles() {
         assertDoesNotThrow(() -> {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
-            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic", fs);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
             Assertions
                     .assertEquals(0, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);

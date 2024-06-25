@@ -193,13 +193,6 @@ public final class HDFSRead implements AutoCloseable {
 
     // try-with-resources handles closing the filesystem automatically.
     public void close() {
-        if (fs != null) {
-            try {
-                fs.close();
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        // NoOp, as closing the FileSystem object here would also close all the other FileSystem objects.
     }
 }

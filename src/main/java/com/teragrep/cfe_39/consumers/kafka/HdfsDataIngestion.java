@@ -48,6 +48,11 @@ package com.teragrep.cfe_39.consumers.kafka;
 import com.teragrep.cfe_39.Config;
 import com.teragrep.cfe_39.metrics.*;
 import com.teragrep.cfe_39.metrics.topic.TopicCounter;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
@@ -56,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.*;
@@ -76,8 +82,9 @@ public class HdfsDataIngestion {
     private boolean useMockKafkaConsumer;
     private final int numOfConsumers;
     private Map<TopicPartition, Long> hdfsStartOffsets;
+    private final FileSystem fs;
 
-    public HdfsDataIngestion(Config config) {
+    public HdfsDataIngestion(Config config) throws IOException {
         keepRunning = true;
         this.config = config;
         Properties readerKafkaProperties = config.getKafkaConsumerProperties();
@@ -86,6 +93,20 @@ public class HdfsDataIngestion {
                 .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
         if (useMockKafkaConsumer) {
             this.kafkaConsumer = MockKafkaConsumerFactory.getConsumer(0); // A consumer used only for scanning the available topics to be allocated to consumers running in different threads (thus 0 as input parameter).
+            // Initializing the FileSystem with minicluster.
+            String hdfsuri = config.getHdfsuri();
+            // ====== Init HDFS File System Object
+            Configuration conf = new Configuration();
+            // Set FileSystem URI
+            conf.set("fs.defaultFS", hdfsuri);
+            // Because of Maven
+            conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+            conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+            // Set HADOOP user
+            System.setProperty("HADOOP_USER_NAME", "hdfs");
+            System.setProperty("hadoop.home.dir", "/");
+            //Get the filesystem - HDFS
+            fs = FileSystem.get(URI.create(hdfsuri), conf);
         }
         else {
             this.kafkaConsumer = new KafkaConsumer<>(
@@ -93,6 +114,29 @@ public class HdfsDataIngestion {
                     new ByteArrayDeserializer(),
                     new ByteArrayDeserializer()
             );
+            // Initializing the FileSystem with kerberos.
+            String hdfsuri = config.getHdfsuri(); // Get from config.
+            // set kerberos host and realm
+            System.setProperty("java.security.krb5.realm", config.getKerberosRealm());
+            System.setProperty("java.security.krb5.kdc", config.getKerberosHost());
+            Configuration conf = new Configuration();
+            // enable kerberus
+            conf.set("hadoop.security.authentication", config.getHadoopAuthentication());
+            conf.set("hadoop.security.authorization", config.getHadoopAuthorization());
+            conf.set("fs.defaultFS", hdfsuri); // Set FileSystem URI
+            conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName()); // Maven stuff?
+            conf.set("fs.file.impl", LocalFileSystem.class.getName()); // Maven stuff?
+            /* hack for running locally with fake DNS records
+             set this to true if overriding the host name in /etc/hosts*/
+            conf.set("dfs.client.use.datanode.hostname", config.getKerberosTestMode());
+            /* server principal
+             the kerberos principle that the namenode is using*/
+            conf.set("dfs.namenode.kerberos.principal.pattern", config.getKerberosPrincipal());
+            // set usergroup stuff
+            UserGroupInformation.setConfiguration(conf);
+            UserGroupInformation.loginUserFromKeytab(config.getKerberosKeytabUser(), config.getKerberosKeytabPath());
+            // filesystem for HDFS access is set here
+            fs = FileSystem.get(conf);
         }
         hdfsStartOffsets = new HashMap<>();
     }
@@ -127,7 +171,7 @@ public class HdfsDataIngestion {
                 LOGGER.info("topic that is being pruned: <{}>", topic_name);
                 if (topic_name != null) {
                     try {
-                        HDFSPrune hdfsPrune = new HDFSPrune(config, topic_name);
+                        HDFSPrune hdfsPrune = new HDFSPrune(config, topic_name, fs);
                         hdfsPrune.prune();
                     }
                     catch (IOException e) {

@@ -155,7 +155,7 @@ public class PruningTwoNewFilesTest {
                     .assertEquals(2, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.13")));
-            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic", fs);
             int deleted = hdfsPrune.prune();
             Assertions.assertEquals(0, deleted);
             // Also check with HDFS access if expected files still exist.

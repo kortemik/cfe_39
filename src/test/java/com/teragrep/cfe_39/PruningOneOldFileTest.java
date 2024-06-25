@@ -153,7 +153,7 @@ public class PruningOneOldFileTest {
             Assertions
                     .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
-            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic");
+            HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic", fs);
             int deleted = hdfsPrune.prune();
             Assertions.assertEquals(1, deleted);
             // Also check with HDFS access if expected files still exist.
