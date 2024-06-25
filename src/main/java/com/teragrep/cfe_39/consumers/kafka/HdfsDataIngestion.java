@@ -151,7 +151,7 @@ public class HdfsDataIngestion {
         List<TopicCounter> topicCounters = new CopyOnWriteArrayList<>();
 
         // Generates offsets of the already committed records for Kafka and passes them to the kafka consumers.
-        try (HDFSRead hr = new HDFSRead(config)) {
+        try (HDFSRead hr = new HDFSRead(config, fs)) {
             hdfsStartOffsets = hr.hdfsStartOffsets();
             LOGGER.debug("topicPartitionStartMap generated succesfully: <{}>", hdfsStartOffsets);
         }
