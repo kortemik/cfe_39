@@ -204,7 +204,7 @@ public class HdfsDataIngestion {
         /* Every consumer is run in a separate thread.
          Consumer group is also handled here, and each consumer of the group runs on separate thread.*/
         int numOfThreads = Math.min(numOfConsumers, listPartitionInfo.size()); // Makes sure that there aren't more consumers than available partitions in the consumer group.
-        for (int testi = 1; numOfThreads >= testi; testi++) {
+        for (int threadId = 1; numOfThreads >= threadId; threadId++) {
             Consumer<List<RecordOffset>> output = new DatabaseOutput(
                     config, // Configuration settings
                     topic, // String, the name of the topic
@@ -217,7 +217,7 @@ public class HdfsDataIngestion {
                     output,
                     hdfsStartOffsets
             );
-            Thread readThread = new Thread(null, readCoordinator, topic + testi); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
+            Thread readThread = new Thread(null, readCoordinator, topic + threadId); // Starts the thread with readCoordinator that creates the consumer and subscribes to the topic.
             threads.add(readThread);
             readThread.start(); // Starts the thread, in other words proceeds to call run() function of ReadCoordinator.
         }
