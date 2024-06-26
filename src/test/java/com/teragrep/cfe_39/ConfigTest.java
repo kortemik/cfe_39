@@ -69,7 +69,7 @@ public class ConfigTest {
             boolean useMockKafkaConsumer = Boolean
                     .parseBoolean(readerKafkaProperties.getProperty("useMockKafkaConsumer", "false"));
             Assertions.assertTrue(useMockKafkaConsumer);
-            LOGGER.debug("useMockKafkaConsumer: " + useMockKafkaConsumer);
+            LOGGER.debug("useMockKafkaConsumer: {}", useMockKafkaConsumer);
         });
     }
 }
