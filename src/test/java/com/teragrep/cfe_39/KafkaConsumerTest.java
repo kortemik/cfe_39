@@ -380,160 +380,37 @@ public class KafkaConsumerTest {
                     );
 
             RFC5424Frame rfc5424Frame = new RFC5424Frame(false);
-
             RecordOffset recordOffset;
-
-            Iterator<String> iterator = list.iterator();
+            Iterator<String> iterator;
+            List<Integer> partitionList = new ArrayList<Integer>();
+            partitionList.add(7);
+            partitionList.add(8);
+            partitionList.add(5);
+            partitionList.add(6);
+            partitionList.add(3);
+            partitionList.add(4);
+            partitionList.add(1);
+            partitionList.add(2);
+            partitionList.add(0);
+            partitionList.add(9);
             int counter = 0;
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":7, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertTrue(iterator.hasNext());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":8, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertTrue(iterator.hasNext());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":5, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":6, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":3, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":4, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":1, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":2, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
-            }
-
-            iterator = list.iterator();
-            for (int i = 0; i <= 13; i++) {
-                recordOffset = messages.get(0).get(counter);
-                Assertions
-                        .assertEquals(
-                                "{\"topic\":\"testConsumerTopic\", \"partition\":9, \"offset\":" + i + "}",
-                                recordOffset.offsetToJSON()
-                        );
-                rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
-                Assertions.assertTrue(rfc5424Frame.next());
-                Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
-                Assertions.assertFalse(rfc5424Frame.next());
-                counter++;
+            for (int partition : partitionList) {
+                iterator = list.iterator();
+                for (int i = 0; i <= 13; i++) {
+                    recordOffset = messages.get(0).get(counter);
+                    Assertions
+                            .assertEquals(
+                                    "{\"topic\":\"testConsumerTopic\", \"partition\":" + partition + ", \"offset\":" + i
+                                            + "}",
+                                    recordOffset.offsetToJSON()
+                            );
+                    rfc5424Frame.load(new ByteArrayInputStream(recordOffset.getRecord()));
+                    Assertions.assertTrue(rfc5424Frame.next());
+                    Assertions.assertTrue(iterator.hasNext());
+                    Assertions.assertEquals(iterator.next(), rfc5424Frame.msg.toString());
+                    Assertions.assertFalse(rfc5424Frame.next());
+                    counter++;
+                }
             }
 
             Assertions.assertEquals(140, counter); // All 140 records asserted.
