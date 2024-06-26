@@ -71,10 +71,10 @@ public class WritableQueue {
         this.queueDirectory = Paths.get(queueDirectory);
         this.queueNamePrefix = queueNamePrefix;
         if (!Files.isDirectory(this.queueDirectory)) {
-            throw new IllegalArgumentException("Provided path is not a " + "directory <[" + queueDirectory + "]>");
+            throw new IllegalArgumentException("Provided path is not a directory <[" + queueDirectory + "]>");
         }
         if (!Files.isWritable(this.queueDirectory)) {
-            throw new IllegalArgumentException("Provided path is not " + "writeable <[" + queueDirectory + "]>");
+            throw new IllegalArgumentException("Provided path is not writeable <[" + queueDirectory + "]>");
         }
     }
 
@@ -108,8 +108,8 @@ public class WritableQueue {
         }
     }
 
-    public void setQueueNamePrefix(String a) {
-        this.queueNamePrefix = a;
+    public void setQueueNamePrefix(String queueNamePrefix) {
+        this.queueNamePrefix = queueNamePrefix;
     }
 
     private BiPredicate<Path, BasicFileAttributes> getFileMatcher(String queueNamePrefix) {
