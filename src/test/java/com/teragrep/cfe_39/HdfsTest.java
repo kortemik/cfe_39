@@ -116,7 +116,7 @@ public class HdfsTest {
 
     @Test
     public void hdfsWriteTest() {
-        // Tests HDFSWrite.java functionality by committing pre-generated AVRO-files to HDFS and assert if it worked as expected.
+        // This test case is for testing the functionality of the HDFSWrite.java by writing pre-generated AVRO-files to the HDFS database and asserting the results are correct.
         assertDoesNotThrow(() -> {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 
@@ -163,7 +163,7 @@ public class HdfsTest {
 
     @Test
     public void hdfsWriteExceptionTest() {
-        // File already exists exception test, commits the same file twice to trigger the exception.
+        // This test case is for testing the functionality of the HDFSWrite.java exception handling by trying to write the same file twice and asserting that the proper exception is thrown.
         assertDoesNotThrow(() -> {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 

@@ -113,6 +113,7 @@ public class PruningNoFilesTest {
 
     @Test
     public void noFiles() {
+        // This test case is for testing the functionality of the HDFSPrune.java when the target database is empty.
         assertDoesNotThrow(() -> {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
             HDFSPrune hdfsPrune = new HDFSPrune(config, "testConsumerTopic", fs);

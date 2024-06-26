@@ -148,8 +148,10 @@ public class Ingestion2NewFilesTest {
 
     @Test
     public void ingestion2NewFilesTest() {
-        // 14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion. Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13).
-
+        /* This test case is for testing the functionality of the ingestion when there are files already present in the database before starting ingestion.
+        14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion.
+        Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13) that are inserted to the database before starting ingestion.
+        */
         assertDoesNotThrow(() -> {
             // Assert the known starting state.
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));

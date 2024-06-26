@@ -147,7 +147,8 @@ public class PruningOneOldOneNewFileTest {
 
     @Test
     public void oneOldOneNewFileTest() {
-        // Test for triggering pruning for 1 out of 2 files in the topic.
+        /* This test case is for testing the functionality of the HDFSPrune.java when the database holds a file with a timestamp that shouldn't trigger pruning of old files and another file that should trigger the pruning.
+         The file with newer timestamp is ignored while the older is deleted from the database.*/
         Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
         Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
 

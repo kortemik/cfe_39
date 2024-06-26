@@ -146,7 +146,7 @@ public class PruningTwoOldFilesTest {
 
     @Test
     public void twoOldFilesTest() {
-        // Test for triggering pruning for 2 files in the topic.
+        // This test case is for testing the functionality of the HDFSPrune.java when the database holds two files with a timestamp that should trigger pruning of old files.
         Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct, too low pruning offset can prune the files if the test is lagging.
         Assertions.assertTrue(System.currentTimeMillis() - config.getPruneOffset() > 157784760000L);
 

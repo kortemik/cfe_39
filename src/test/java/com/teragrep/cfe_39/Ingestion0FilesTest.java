@@ -114,7 +114,9 @@ public class Ingestion0FilesTest {
 
     @Test
     public void ingestion0FilesTest() {
-        // Empty HDFS database, 140 records in mock kafka consumer ready for ingestion. All 14 records for each 10 topic partitions are stored in a single avro-file per partition.
+        /*This test case is for testing the functionality of the ingestion when there are no files already present in the database before starting ingestion.
+        Maximum file size is set to 30,000 in the config.
+        Empty HDFS database, 140 records in mock kafka consumer ready for ingestion. All 14 records for each 10 topic partitions are stored in a single avro-file per partition.*/
         assertDoesNotThrow(() -> {
             Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct.
             config.setMaximumFileSize(30000); // This parameter defines the amount of records that can fit inside a single AVRO-file.
@@ -329,7 +331,9 @@ public class Ingestion0FilesTest {
 
     @Test
     public void ingestion0FilesLowSizeTest() {
-        // Empty HDFS database, 140 records in mock kafka consumer ready for ingestion. All 14 records for each 10 topic partitions are stored in two avro-files per partition based on MaximumFileSize.
+        /*This test case is for testing the functionality of the ingestion when there are files already present in the database before starting ingestion.
+        Maximum file size is set to 3,000 in the config.
+        Empty HDFS database, 140 records in mock kafka consumer ready for ingestion. All 14 records for each 10 topic partitions are stored in two avro-files per partition based on MaximumFileSize.*/
         assertDoesNotThrow(() -> {
             Assertions.assertTrue(config.getPruneOffset() >= 300000L); // Fails the test if the config is not correct.
             config.setMaximumFileSize(3000); // This parameter defines the amount of records that can fit inside a single AVRO-file.

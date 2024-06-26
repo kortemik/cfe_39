@@ -147,9 +147,11 @@ public class Ingestion1Old1NewFileTest {
 
     @Test
     public void ingestion1Old1NewFileTest() {
-        /* 14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion.
+        /* This test case is for testing the functionality of the ingestion when there are files already present in the database before starting ingestion.
+         14 records are inserted to HDFS database before starting ingestion, with 124/140 records in mock kafka consumer ready for ingestion.
          Partitions through 1 to 9 will have only a single file, partition 0 will have 2 files (0.9 and 0.13).
-         partition 0 files are pre-made and inserted to the HDFS database with old timestamp for file 0.9 and new for 0.13.*/
+         partition 0 files are pre-made and inserted to the HDFS database with old timestamp for file 0.9 and new for 0.13.
+         Old files are pruned from the database during ingestion topic scan loops.*/
 
         assertDoesNotThrow(() -> {
             // Assert the known starting state.
