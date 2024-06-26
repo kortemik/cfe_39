@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-class SyslogAvroWriter implements AutoCloseable {
+public class SyslogAvroWriter implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SyslogAvroWriter.class);
 
@@ -67,7 +67,7 @@ class SyslogAvroWriter implements AutoCloseable {
 
     private final DataFileWriter<SyslogRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
 
-    SyslogAvroWriter(File syslogFile) throws IOException {
+    public SyslogAvroWriter(File syslogFile) throws IOException {
         dataFileWriter.setCodec(CodecFactory.snappyCodec());
 
         syncableFileOutputStream = new SyncableFileOutputStream(syslogFile);
@@ -88,7 +88,7 @@ class SyslogAvroWriter implements AutoCloseable {
         }
     }
 
-    void write(SyslogRecord syslogRecord) throws IOException {
+    public void write(SyslogRecord syslogRecord) throws IOException {
         dataFileWriter.append(syslogRecord);
         dataFileWriter.flush();
         // getFileSize() doesn't work properly if dataFileWriter.flush() is not called after appending a new record to the AVRO-file.
