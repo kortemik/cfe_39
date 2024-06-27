@@ -256,7 +256,7 @@ public class HdfsDataIngestion {
                 durationStatistics.addAndGetThreads(1);
             }
             catch (SQLException sqlException) {
-                LOGGER.error("Topic <{}> not activated due to reader creation error: ", k, sqlException);
+                LOGGER.error("Topic <{}> not activated due to reader creation error: {}", k, sqlException);
             }
         });
         durationStatistics.report();
