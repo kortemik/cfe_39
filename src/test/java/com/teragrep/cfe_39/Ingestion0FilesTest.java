@@ -51,7 +51,6 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
@@ -80,25 +79,8 @@ public class Ingestion0FilesTest {
             config = new Config();
             // Create a HDFS miniCluster
             baseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
-            Configuration conf = new Configuration();
-            conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
-            MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
-            hdfsCluster = builder.build();
-            String hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/";
-            config.setHdfsuri(hdfsURI);
-            DistributedFileSystem fileSystem = hdfsCluster.getFileSystem();
-
-            // ====== Init HDFS File System Object
-            Configuration fsConf = new Configuration();
-            // Set FileSystem URI
-            fsConf.set("fs.defaultFS", hdfsURI);
-            // Because of Maven
-            fsConf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-            fsConf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-            // Set HADOOP user
-            System.setProperty("HADOOP_USER_NAME", "hdfs");
-            System.setProperty("hadoop.home.dir", "/");
-            fs = FileSystem.get(URI.create(hdfsURI), fsConf);
+            hdfsCluster = new TestMiniClusterFactory().create(config, baseDir);
+            fs = new TestFileSystemFactory().create(config.getHdfsuri());
         });
     }
 

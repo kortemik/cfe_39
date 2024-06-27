@@ -51,7 +51,6 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -87,25 +86,9 @@ public class Ingestion2NewFilesTest {
             config = new Config();
             // Create a HDFS miniCluster
             baseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
-            Configuration conf = new Configuration();
-            conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
-            MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
-            hdfsCluster = builder.build();
-            String hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/";
-            config.setHdfsuri(hdfsURI);
-            DistributedFileSystem fileSystem = hdfsCluster.getFileSystem();
+            hdfsCluster = new TestMiniClusterFactory().create(config, baseDir);
+            fs = new TestFileSystemFactory().create(config.getHdfsuri());
 
-            // ====== Init HDFS File System Object
-            Configuration fsConf = new Configuration();
-            // Set FileSystem URI
-            fsConf.set("fs.defaultFS", hdfsURI);
-            // Because of Maven
-            fsConf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-            fsConf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-            // Set HADOOP user
-            System.setProperty("HADOOP_USER_NAME", "hdfs");
-            System.setProperty("hadoop.home.dir", "/");
-            fs = FileSystem.get(URI.create(hdfsURI), fsConf);
             // Inserts pre-made avro-files with new timestamps to HDFS, which are normally generated during data ingestion from mock kafka consumer.
             String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
             // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.

@@ -46,11 +46,9 @@
 package com.teragrep.cfe_39;
 
 import com.teragrep.cfe_39.consumers.kafka.HdfsDataIngestion;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -60,7 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.util.Objects;
 import java.util.Set;
@@ -84,25 +81,9 @@ public class Ingestion1Old1NewFileTest {
             config = new Config();
             // Create a HDFS miniCluster
             baseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();
-            Configuration conf = new Configuration();
-            conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, baseDir.getAbsolutePath());
-            MiniDFSCluster.Builder builder = new MiniDFSCluster.Builder(conf);
-            hdfsCluster = builder.build();
-            String hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/";
-            config.setHdfsuri(hdfsURI);
-            DistributedFileSystem fileSystem = hdfsCluster.getFileSystem();
+            hdfsCluster = new TestMiniClusterFactory().create(config, baseDir);
+            fs = new TestFileSystemFactory().create(config.getHdfsuri());
 
-            // ====== Init HDFS File System Object
-            Configuration fsConf = new Configuration();
-            // Set FileSystem URI
-            fsConf.set("fs.defaultFS", hdfsURI);
-            // Because of Maven
-            fsConf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-            fsConf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-            // Set HADOOP user
-            System.setProperty("HADOOP_USER_NAME", "hdfs");
-            System.setProperty("hadoop.home.dir", "/");
-            fs = FileSystem.get(URI.create(hdfsURI), fsConf);
             // Inserts pre-made avro-files to HDFS where one file has new timestamp and other old, which are normally generated during data ingestion from mock kafka consumer.
             String path = config.getHdfsPath() + "/" + "testConsumerTopic"; // "hdfs:///opt/teragrep/cfe_39/srv/testConsumerTopic"
             // Sets the directory where the data should be stored, if the directory doesn't exist then it's created.
