@@ -167,21 +167,6 @@ public class Ingestion1Old1NewFileTest {
             Thread.sleep(10000);
             hdfsDataIngestion.run();
 
-            // hdfsDataIngestion.run(); has called fs.close() after finishing ingesting the records from kafka. Rebuild fs.
-            String hdfsURI = "hdfs://localhost:" + hdfsCluster.getNameNodePort() + "/";
-            config.setHdfsuri(hdfsURI);
-            // ====== Init HDFS File System Object
-            Configuration fsConf = new Configuration();
-            // Set FileSystem URI
-            fsConf.set("fs.defaultFS", hdfsURI);
-            // Because of Maven
-            fsConf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-            fsConf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-            // Set HADOOP user
-            System.setProperty("HADOOP_USER_NAME", "hdfs");
-            System.setProperty("hadoop.home.dir", "/");
-            fs = FileSystem.get(URI.create(hdfsURI), fsConf);
-
             // Assert that the kafka records were ingested and pruned correctly and the database holds only the expected 10 files.
             Assertions
                     .assertEquals(10, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
