@@ -300,9 +300,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER
                                     .debug(
-                                            "Target file size reached, file <{}> stored to <{}> in HDFS", syslogFile
-                                                    .getName(),
-                                            lastObjectJo.get("topic").getAsString() + "/" + lastObjectJo.get("partition").getAsString() + "." + lastObjectJo.get("offset").getAsString()
+                                            "Target file size reached, file <{}> stored to <{}/{}.{}> in HDFS",
+                                            syslogFile.getName(), lastObjectJo.get("topic").getAsString(), lastObjectJo.get("partition").getAsString(), lastObjectJo.get("offset").getAsString()
                                     );
                         }
                     }
