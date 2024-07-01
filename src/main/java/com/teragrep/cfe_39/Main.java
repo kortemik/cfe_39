@@ -61,11 +61,11 @@ public class Main {
             config = new Config();
         }
         catch (IOException e) {
-            System.out.println("Can't load config: " + e);
+            LOGGER.error("Can't load config: ", e);
             System.exit(1);
         }
         catch (IllegalArgumentException e) {
-            System.out.println("Got invalid config: " + e);
+            LOGGER.error("Got invalid config: ", e);
             System.exit(1);
         }
         LOGGER.info("Running main program");
