@@ -1,0 +1,43 @@
+name: Upload Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload:
+    name: Upload
+    runs-on: ubuntu-
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+          server-id: github
+          settings-path: ${{ github.workspace }}
+
+
+      - name: Package jar
+        run: mvn --batch-mode -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= clean package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package rpm
+        run: cd rpm/ && mvn --batch-mode -Drevision=${{ github.event.release.tag_name }} -Dsha1= -Dchangelist= -f rpm.pom.xml package
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach rpm to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            rpm/target/rpm/com.teragrep-cfe_39/RPMS/noarch/com.teragrep-cfe_39-*.noarch.rpm
+            target/cfe_39-*-jar-with-dependencies.jar
