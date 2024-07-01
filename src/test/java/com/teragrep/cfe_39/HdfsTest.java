@@ -110,7 +110,7 @@ public class HdfsTest {
             Assertions.assertTrue(targetFile.toFile().exists());
             File avroFile = new File(targetFile.toUri());
             JsonObject recordOffsetJo = JsonParser
-                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"9\"}")
+                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":9}")
                     .getAsJsonObject();
             try (HDFSWrite writer = new HDFSWrite(config, recordOffsetJo)) {
                 writer.commit(avroFile); // commits avroFile to HDFS and deletes avroFile afterward.
@@ -128,7 +128,7 @@ public class HdfsTest {
             Assertions.assertTrue(targetFile.toFile().exists());
             avroFile = new File(config.getQueueDirectory() + "/0.13");
             recordOffsetJo = JsonParser
-                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"13\"}")
+                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":13}")
                     .getAsJsonObject();
             try (HDFSWrite writer = new HDFSWrite(config, recordOffsetJo)) {
                 writer.commit(avroFile); // commits avroFile to HDFS and deletes avroFile afterward.
@@ -158,7 +158,7 @@ public class HdfsTest {
             Assertions.assertTrue(targetFile.toFile().exists());
             File avroFile = new File(targetFile.toUri());
             JsonObject recordOffsetJo = JsonParser
-                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"9\"}")
+                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":9}")
                     .getAsJsonObject();
             try (HDFSWrite writer = new HDFSWrite(config, recordOffsetJo)) {
                 writer.commit(avroFile); // commits avroFile to HDFS and deletes avroFile afterward.
@@ -172,7 +172,7 @@ public class HdfsTest {
             Assertions.assertTrue(targetFile.toFile().exists());
             avroFile = new File(config.getQueueDirectory() + "/0.9");
             recordOffsetJo = JsonParser
-                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":\"0\", \"offset\":\"9\"}")
+                    .parseString("{\"topic\":\"testConsumerTopic\", \"partition\":0, \"offset\":9}")
                     .getAsJsonObject();
             HDFSWrite writer = new HDFSWrite(config, recordOffsetJo);
             File finalAvroFile = avroFile;
