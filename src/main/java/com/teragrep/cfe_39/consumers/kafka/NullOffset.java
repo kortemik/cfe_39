@@ -60,6 +60,6 @@ public final class NullOffset implements Offset {
 
     @Override
     public String offsetToJSON() {
-        return "{\"topic\":\"Not available\", \"partition\":\"0\", \"offset\":\"0\"}";
+        return "{\"topic\":\"Not available\", \"partition\":0, \"offset\":0}";
     }
 }
