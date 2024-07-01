@@ -124,7 +124,6 @@ public class Config {
         if (!(new File(loginConfig)).isFile()) {
             throw new IOException("File '" + loginConfig + "' set by java.security.auth.login.config does not exist");
         }
-        System.setProperty("java.security.auth.login.config", loginConfig);
 
         // Just for loggers to work
         Path log4j2Config = Paths
