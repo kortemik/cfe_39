@@ -46,7 +46,6 @@
 package com.teragrep.cfe_39;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +58,12 @@ public class ConfigTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigTest.class);
 
-    @Disabled(value = "This code is WIP, leaving the test implementation to deployment step.")
     @Test
-    public void configTest() {
+    public void validConfigTest() {
         assertDoesNotThrow(() -> {
+            // Set system properties to use the valid configuration.
+            System
+                    .setProperty("cfe_39.config.location", System.getProperty("user.dir") + "/src/test/resources/valid.application.properties");
             Config config = new Config();
             Properties readerKafkaProperties = config.getKafkaConsumerProperties();
             // Test extracting useMockKafkaConsumer value from config.
@@ -71,5 +72,17 @@ public class ConfigTest {
             Assertions.assertTrue(useMockKafkaConsumer);
             LOGGER.debug("useMockKafkaConsumer: {}", useMockKafkaConsumer);
         });
+    }
+
+    @Test
+    public void brokenConfigTest() {
+        // Set system properties to use the broken configuration.
+        System
+                .setProperty("cfe_39.config.location", System.getProperty("user.dir") + "/src/test/resources/broken.application.properties");
+        // Test if the broken configuration throws the expected exception.
+        Exception e = Assertions.assertThrows(Exception.class, () -> {
+            Config config = new Config();
+        });
+        Assertions.assertEquals("hdfsuri not set", e.getMessage());
     }
 }

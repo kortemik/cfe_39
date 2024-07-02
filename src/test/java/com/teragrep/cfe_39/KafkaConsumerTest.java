@@ -67,6 +67,9 @@ public class KafkaConsumerTest {
     @Test
     public void readCoordinatorTest2Threads() {
         assertDoesNotThrow(() -> {
+            // Set system properties to use the valid configuration.
+            System
+                    .setProperty("cfe_39.config.location", System.getProperty("user.dir") + "/src/test/resources/valid.application.properties");
             Config config = new Config();
             Map<TopicPartition, Long> hdfsStartOffsets = new HashMap<>();
             ArrayList<List<RecordOffset>> messages = new ArrayList<>();

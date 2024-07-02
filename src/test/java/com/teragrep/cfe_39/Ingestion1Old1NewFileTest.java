@@ -78,6 +78,9 @@ public class Ingestion1Old1NewFileTest {
     @BeforeEach
     public void startMiniCluster() {
         assertDoesNotThrow(() -> {
+            // Set system properties to use the valid configuration.
+            System
+                    .setProperty("cfe_39.config.location", System.getProperty("user.dir") + "/src/test/resources/valid.application.properties");
             config = new Config();
             // Create a HDFS miniCluster
             baseDir = Files.createTempDirectory("test_hdfs").toFile().getAbsoluteFile();

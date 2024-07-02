@@ -78,12 +78,10 @@ public class Config {
     private final int numOfConsumers;
     private final long pruneOffset;
 
-    // TODO: Set up configuration check for important parameters.
-
     public Config() throws IOException {
         Properties properties = new Properties();
         Path configPath = Paths
-                .get(System.getProperty("cfe_39.config.location", System.getProperty("user.dir") + "/etc/application.properties"));
+                .get(System.getProperty("cfe_39.config.location", System.getProperty("user.dir") + "/rpm/resources/application.properties"));
         LOGGER.info("Loading application config <[{}]>", configPath.toAbsolutePath());
 
         try (InputStream inputStream = Files.newInputStream(configPath)) {
@@ -93,7 +91,10 @@ public class Config {
 
         // HDFS
         this.hdfsPath = properties.getProperty("hdfsPath", "hdfs:///opt/teragrep/cfe_39/srv/");
-        this.hdfsuri = properties.getProperty("hdfsuri", "hdfs://localhost:45937/");
+        this.hdfsuri = properties.getProperty("hdfsuri");
+        if (this.hdfsuri == null) {
+            throw new IllegalArgumentException("hdfsuri not set");
+        }
 
         // HDFS pruning
         this.pruneOffset = Long.parseLong(properties.getProperty("pruneOffset", "172800000"));
@@ -103,13 +104,34 @@ public class Config {
         this.maximumFileSize = Long.parseLong(properties.getProperty("maximumFileSize", "60800000"));
 
         // kerberos
-        this.kerberosHost = properties.getProperty("java.security.krb5.kdc", "");
-        this.kerberosRealm = properties.getProperty("java.security.krb5.realm", "");
-        this.hadoopAuthentication = properties.getProperty("hadoop.security.authentication", "");
-        this.hadoopAuthorization = properties.getProperty("hadoop.security.authorization", "");
-        this.kerberosPrincipal = properties.getProperty("dfs.namenode.kerberos.principal.pattern", "");
-        this.kerberosKeytabUser = properties.getProperty("KerberosKeytabUser", "");
-        this.kerberosKeytabPath = properties.getProperty("KerberosKeytabPath", "");
+        this.kerberosHost = properties.getProperty("java.security.krb5.kdc");
+        if (this.kerberosHost == null) {
+            throw new IllegalArgumentException("kerberosHost not set");
+        }
+        this.kerberosRealm = properties.getProperty("java.security.krb5.realm");
+        if (this.kerberosRealm == null) {
+            throw new IllegalArgumentException("kerberosRealm not set");
+        }
+        this.hadoopAuthentication = properties.getProperty("hadoop.security.authentication");
+        if (this.hadoopAuthentication == null) {
+            throw new IllegalArgumentException("hadoopAuthentication not set");
+        }
+        this.hadoopAuthorization = properties.getProperty("hadoop.security.authorization");
+        if (this.hadoopAuthorization == null) {
+            throw new IllegalArgumentException("hadoopAuthorization not set");
+        }
+        this.kerberosPrincipal = properties.getProperty("dfs.namenode.kerberos.principal.pattern");
+        if (this.kerberosPrincipal == null) {
+            throw new IllegalArgumentException("kerberosPrincipal not set");
+        }
+        this.kerberosKeytabUser = properties.getProperty("KerberosKeytabUser");
+        if (this.kerberosKeytabUser == null) {
+            throw new IllegalArgumentException("kerberosKeytabUser not set");
+        }
+        this.kerberosKeytabPath = properties.getProperty("KerberosKeytabPath");
+        if (this.kerberosKeytabPath == null) {
+            throw new IllegalArgumentException("kerberosKeytabPath not set");
+        }
         this.kerberosTestMode = properties.getProperty("dfs.client.use.datanode.hostname", "false");
 
         // kafka
@@ -117,7 +139,8 @@ public class Config {
         this.numOfConsumers = Integer.parseInt(properties.getProperty("numOfConsumers", "1"));
 
         this.kafkaConsumerProperties = loadSubProperties(properties, "consumer.");
-        String loginConfig = properties.getProperty("java.security.auth.login.config");
+        String loginConfig = properties
+                .getProperty("java.security.auth.login.config", System.getProperty("user.dir") + "/rpm/resources/config.jaas");
         if (loginConfig == null) {
             throw new IOException("Property java.security.auth.login.config does not exist");
         }
@@ -127,7 +150,7 @@ public class Config {
 
         // Just for loggers to work
         Path log4j2Config = Paths
-                .get(properties.getProperty("log4j2.configurationFile", System.getProperty("user.dir") + "/etc/log4j2.properties"));
+                .get(properties.getProperty("log4j2.configurationFile", System.getProperty("user.dir") + "/rpm/resources/log4j2.properties"));
         LOGGER.info("Loading log4j2 config from <[{}]>", log4j2Config.toRealPath());
         Configurator.reconfigure(log4j2Config.toUri());
     }
