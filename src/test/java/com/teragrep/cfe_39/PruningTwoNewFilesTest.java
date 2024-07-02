@@ -93,7 +93,7 @@ public class PruningTwoNewFilesTest {
             fs.mkdirs(newDirectoryPath);
             LOGGER.debug("Path {} created.", path);
 
-            String dir = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles";
+            String dir = System.getProperty("user.dir") + "/src/test/resources/mockHdfsFiles";
             Set<String> listOfFiles = Stream
                     .of(Objects.requireNonNull(new File(dir).listFiles()))
                     .filter(file -> !file.isDirectory())

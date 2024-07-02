@@ -101,7 +101,7 @@ public class HdfsTest {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 
             // writer.commit will delete the file that is given as an input argument. Copy the mock files to another directory so the deletion can be asserted properly too.
-            String pathname = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles/0.9";
+            String pathname = System.getProperty("user.dir") + "/src/test/resources/mockHdfsFiles/0.9";
             java.nio.file.Path sourceFile = Paths.get(pathname);
             java.nio.file.Path targetDir = Paths.get(config.getQueueDirectory());
             java.nio.file.Path targetFile = targetDir.resolve(sourceFile.getFileName());
@@ -120,7 +120,7 @@ public class HdfsTest {
                     .assertEquals(1, fs.listStatus(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")).length);
             Assertions.assertTrue(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic" + "/" + "0.9")));
 
-            pathname = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles/0.13";
+            pathname = System.getProperty("user.dir") + "/src/test/resources/mockHdfsFiles/0.13";
             sourceFile = Paths.get(pathname);
             targetDir = Paths.get(config.getQueueDirectory());
             targetFile = targetDir.resolve(sourceFile.getFileName());
@@ -148,7 +148,7 @@ public class HdfsTest {
             Assertions.assertFalse(fs.exists(new Path(config.getHdfsPath() + "/" + "testConsumerTopic")));
 
             // writer.commit will delete the source file that is given as an input argument. Copy the mock file to another directory so the deletion of the source file can be asserted properly.
-            String pathname = System.getProperty("user.dir") + "/src/test/java/com/teragrep/cfe_39/mockHdfsFiles/0.9";
+            String pathname = System.getProperty("user.dir") + "/src/test/resources/mockHdfsFiles/0.9";
             java.nio.file.Path sourceFile = Paths.get(pathname);
             java.nio.file.Path targetDir = Paths.get(config.getQueueDirectory());
             java.nio.file.Path targetFile = targetDir.resolve(sourceFile.getFileName());
