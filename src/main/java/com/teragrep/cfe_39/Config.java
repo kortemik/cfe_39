@@ -81,7 +81,7 @@ public class Config {
     public Config() throws IOException {
         Properties properties = new Properties();
         Path configPath = Paths
-                .get(System.getProperty("cfe_39.config.location", System.getProperty("user.dir") + "/rpm/resources/application.properties"));
+                .get(System.getProperty("cfe_39.config.location", "/opt/teragrep/cfe_39/etc/application.properties"));
         LOGGER.info("Loading application config <[{}]>", configPath.toAbsolutePath());
 
         try (InputStream inputStream = Files.newInputStream(configPath)) {
@@ -98,10 +98,16 @@ public class Config {
 
         // HDFS pruning
         this.pruneOffset = Long.parseLong(properties.getProperty("pruneOffset", "172800000"));
+        if (this.pruneOffset <= 0) {
+            throw new IllegalArgumentException("pruneOffset must be set to >0, got " + pruneOffset);
+        }
 
         // AVRO
         this.queueDirectory = properties.getProperty("queueDirectory", System.getProperty("user.dir") + "/etc/AVRO/");
         this.maximumFileSize = Long.parseLong(properties.getProperty("maximumFileSize", "60800000"));
+        if (this.maximumFileSize <= 0) {
+            throw new IllegalArgumentException("maximumFileSize must be set to >0, got " + maximumFileSize);
+        }
 
         // kerberos
         this.kerberosHost = properties.getProperty("java.security.krb5.kdc");
