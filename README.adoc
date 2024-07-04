@@ -1,0 +1,41 @@
+
+# CFE_39
+
+This is a HDFS Data Ingestion module for PTH_06 use.
+
+## Features
+
+Implements almost real-time datasource that allows reading latest data from Kafka (last few records), semi-latest data from HDFS (Last Few Days) and old data from S3 Archive.
+
+## Documentation
+
+See the official documentation on https://docs.teragrep.com[docs.teragrep.com].
+
+## How to [compile/use/implement]
+
+`mvn clean package`
+
+application.properties, config.jaas and log4j2.properties files have to be created to use this module.
+By default, application.properties file must be placed in /opt/teragrep/cfe_39/etc/ directory.
+The application.properties is used to define the directory where the other files must be placed.
+
+Example configuration files available in cfe_39/rpm/resources/ directory.
+
+## Contributing
+
+You can involve yourself with our project by https://github.com/teragrep/cfe_39/issues/new/choose[opening an issue] or submitting a pull request.
+
+Contribution requirements:
+
+. *All changes must be accompanied by a new or changed test.* If you think testing is not required in your pull request, include a sufficient explanation as why you think so.
+. Security checks must pass
+. Pull requests must align with the principles and http://www.extremeprogramming.org/values.html[values] of extreme programming.
+. Pull requests must follow the principles of Object Thinking and Elegant Objects (EO).
+
+Read more in our https://github.com/teragrep/teragrep/blob/main/contributing.adoc[Contributing Guideline].
+
+### Contributor License Agreement
+
+Contributors must sign https://github.com/teragrep/teragrep/blob/main/cla.adoc[Teragrep Contributor License Agreement] before a pull request is accepted to organization's repositories.
+
+You need to submit the CLA only once. After submitting the CLA you can contribute to all Teragrep's repositories.

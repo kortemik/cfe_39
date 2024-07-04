@@ -1,0 +1,15 @@
+{"namespace": "com.teragrep.cfe_39.avro",
+  "type": "record",
+  "name": "SyslogRecord",
+  "fields": [
+    {"name": "timestamp", "type": "long"},
+    {"name": "directory", "type": "string"},
+    {"name": "stream", "type": "string"},
+    {"name": "host", "type": "string"},
+    {"name": "input", "type": "string"},
+    {"name": "partition", "type": "string"},
+    {"name": "offset", "type": "long"},
+    {"name": "origin", "type": "string"},
+    {"name": "payload", "type": "string"}
+  ]
+}
