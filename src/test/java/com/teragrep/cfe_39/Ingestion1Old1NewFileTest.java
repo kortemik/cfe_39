@@ -54,6 +54,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,6 +130,10 @@ public class Ingestion1Old1NewFileTest {
         FileUtil.fullyDelete(baseDir);
     }
 
+    @DisabledIfSystemProperty(
+            named = "skipIngestionTest",
+            matches = "true"
+    )
     @Test
     public void ingestion1Old1NewFileTest() {
         /* This test case is for testing the functionality of the ingestion when there are files already present in the database before starting ingestion.

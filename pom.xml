@@ -149,6 +149,71 @@
     <finalName>${project.artifactId}-${revision}${changelist}${sha1}</finalName>
     <plugins>
       <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.16.1</version>
+        <inherited>false</inherited>
+        <configuration>
+          <addDefaultLicenseMatchers>false</addDefaultLicenseMatchers>
+          <addDefaultLicenses>false</addDefaultLicenses>
+          <families>
+            <family>
+              <id>Teragrep</id>
+              <name>Affero General Public License v3</name>
+            </family>
+          </families>
+          <licenses>
+            <license>
+              <all>
+                <copyright>
+                  <owner>Suomen Kanuuna Oy</owner>
+                  <start>2024</start>
+                </copyright>
+                <text>HDFS Data Ingestion for PTH_06 use CFE-39</text>
+              </all>
+              <family>Teragrep</family>
+            </license>
+          </licenses>
+          <consoleOutput>true</consoleOutput>
+          <excludeSubProjects>false</excludeSubProjects>
+          <excludes>
+            <!-- git -->
+            <exclude>.git/**</exclude>
+            <exclude>.gitattributes</exclude>
+            <exclude>.gitignore</exclude>
+            <exclude>.gitmodules</exclude>
+            <!-- ci -->
+            <exclude>.github/workflows/*</exclude>
+            <exclude>.github/ISSUE_TEMPLATE/*</exclude>
+            <exclude>toolchains.xml</exclude>
+            <exclude>settings.xml</exclude>
+            <!-- maven -->
+            <exclude>pom.xml</exclude>
+            <exclude>eclipse-java-formatter.xml</exclude>
+            <!-- readme -->
+            <exclude>README.adoc</exclude>
+            <!-- other -->
+            <exclude>license-header</exclude>
+            <exclude>src/main/avro/KafkaRecord.avsc</exclude>
+            <exclude>src/main/assembly/jar-with-dependencies.xml</exclude>
+            <exclude>src/test/resources/broken.application.properties</exclude>
+            <exclude>src/test/resources/valid.application.properties</exclude>
+            <exclude>rpm/resources/config.jaas</exclude>
+            <exclude>rpm/resources/log4j2.properties</exclude>
+            <exclude>rpm/resources/application.properties</exclude>
+            <exclude>rpm/rpm.pom.xml</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.avro</groupId>
         <artifactId>avro-maven-plugin</artifactId>
         <version>1.11.3</version>

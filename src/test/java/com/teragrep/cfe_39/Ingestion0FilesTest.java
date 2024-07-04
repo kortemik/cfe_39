@@ -53,6 +53,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.Path;
@@ -97,6 +98,10 @@ public class Ingestion0FilesTest {
         FileUtil.fullyDelete(baseDir);
     }
 
+    @DisabledIfSystemProperty(
+            named = "skipIngestionTest",
+            matches = "true"
+    )
     @Test
     public void ingestion0FilesTest() {
         /*This test case is for testing the functionality of the ingestion when there are no files already present in the database before starting ingestion.
@@ -296,6 +301,10 @@ public class Ingestion0FilesTest {
         });
     }
 
+    @DisabledIfSystemProperty(
+            named = "skipIngestionTest",
+            matches = "true"
+    )
     @Test
     public void ingestion0FilesLowSizeTest() {
         /*This test case is for testing the functionality of the ingestion when there are files already present in the database before starting ingestion.
