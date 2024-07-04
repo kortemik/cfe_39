@@ -13,11 +13,13 @@ See the official documentation on https://docs.teragrep.com[docs.teragrep.com].
 
 ## How to [compile/use/implement]
 
-// TODO: add instructions how people can start to use your project, also add more information on the required configuration files.
-`mvn clean install`
+`mvn clean package`
 
-config.jaas, application.properties and log4j2.properties files have to created to use this module. The files must be placed in the working directory.
+application.properties, config.jaas and log4j2.properties files have to be created to use this module.
+By default, application.properties file must be placed in /opt/teragrep/cfe_39/etc/ directory.
+The application.properties is used to define the directory where the other files must be placed.
 
+Example configuration files available in cfe_39/rpm/resources/ directory.
 
 ## Contributing
 
