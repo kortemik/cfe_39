@@ -202,6 +202,7 @@
             <exclude>rpm/resources/log4j2.properties</exclude>
             <exclude>rpm/resources/application.properties</exclude>
             <exclude>rpm/rpm.pom.xml</exclude>
+            <exclude>src/main/java/com/teragrep/cfe_39/avro/SyslogRecord.java</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -316,6 +317,9 @@
             <licenseHeader>
               <file>${project.basedir}/license-header</file>
             </licenseHeader>
+            <excludes>
+              <exclude>src/main/java/com/teragrep/cfe_39/avro/SyslogRecord.java</exclude>
+            </excludes>
           </java>
           <pom>
             <sortPom>
