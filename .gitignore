@@ -15,3 +15,5 @@ buildNumber.properties
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+src/main/java/com/teragrep/cfe_39/avro/SyslogRecord.java
