@@ -5,7 +5,7 @@
     <packaging>rpm</packaging>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cfe_39</artifactId>
-    <version>${revision}${sha1}${changelist}.${env.TARGET_OS}.x86_64</version>
+    <version>${revision}${sha1}${changelist}</version>
     <name>cfe_39</name>
     <description>cfe_39</description>
     <groupId>com.teragrep</groupId>
