@@ -69,8 +69,8 @@
                     <packager>teragrep &lt;servicedesk@teragrep.com&gt;</packager>
                     <group>teragrep/LogManagementSuite</group>
                     <needarch>false</needarch>
-                    <defaultUsername>root</defaultUsername>
-                    <defaultGroupname>root</defaultGroupname>
+                    <defaultUsername>srv-cfe_39</defaultUsername>
+                    <defaultGroupname>srv-cfe_39</defaultGroupname>
                     <defaultFilemode>0644</defaultFilemode>
                     <defaultDirmode>0755</defaultDirmode>
                     <defineStatements>
@@ -84,8 +84,8 @@
                             <directoryIncluded>true</directoryIncluded>
                             <filemode>755</filemode>
                             <dirmode>755</dirmode>
-                            <username>root</username>
-                            <groupname>root</groupname>
+                            <username>srv-cfe_39</username>
+                            <groupname>srv-cfe_39</groupname>
                             <recurseDirectories>true</recurseDirectories>
                             <sources>
                                 <source>
@@ -110,7 +110,26 @@
                                 </source>
                             </sources>
                         </mapping>
+                        <mapping>
+                          <directory>/usr/lib/systemd/system</directory>
+                          <directoryIncluded>false</directoryIncluded>
+                          <sources>
+                            <source>
+                              <location>${project.basedir}/resources/cfe_39.service</location>
+                            </source>
+                          </sources>
+                        </mapping>
                     </mappings>
+                    <requires>
+                      <require>java-1.8.0-openjdk</require>
+                    </requires>
+                    <preinstallScriptlet>
+                      <script>
+getent group srv-cfe_39 > /dev/null || groupadd -r srv-cfe_39;
+getent passwd srv-cfe_39 > /dev/null || useradd -r -g srv-cfe_39 -d /opt/teragrep/${project.artifactId} -s /sbin/nologin -c "Service User" srv-cfe_39;
+exit 0;
+                      </script>
+                    </preinstallScriptlet>
                 </configuration>
             </plugin>
             <plugin>

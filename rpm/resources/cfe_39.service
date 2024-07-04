@@ -1,0 +1,12 @@
+[Unit]
+Description=com.teragrep.cfe_39
+ConditionPathExists=/opt/teragrep/cfe_39/lib/cfe_39.jar
+
+[Service]
+ExecStart=/usr/lib/jvm/jre-1.8.0-openjdk/bin/java -jar /opt/teragrep/cfe_39/lib/cfe_39.jar
+User=srv-cfe_39
+WorkingDirectory=/opt/teragrep/cfe_39
+
+[Install]
+WantedBy=multi-user.target
+

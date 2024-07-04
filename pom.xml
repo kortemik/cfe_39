@@ -201,6 +201,7 @@
             <exclude>rpm/resources/config.jaas</exclude>
             <exclude>rpm/resources/log4j2.properties</exclude>
             <exclude>rpm/resources/application.properties</exclude>
+            <exclude>rpm/resources/cfe_39.service</exclude>
             <exclude>rpm/rpm.pom.xml</exclude>
             <exclude>src/main/java/com/teragrep/cfe_39/avro/SyslogRecord.java</exclude>
           </excludes>
