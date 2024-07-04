@@ -94,6 +94,22 @@
                                 </source>
                             </sources>
                         </mapping>
+                        <mapping>
+                            <directory>/opt/teragrep/${project.artifactId}/etc</directory>
+                            <directoryIncluded>true</directoryIncluded>
+                            <configuration>noreplace</configuration>
+                            <sources>
+                                <source>
+                                    <location>${project.basedir}/../rpm/resources/application.properties</location>
+                                </source>
+                                <source>
+                                    <location>${project.basedir}/../rpm/resources/config.jaas</location>
+                                </source>
+                                <source>
+                                    <location>${project.basedir}/../rpm/resources/log4j2.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
                     </mappings>
                 </configuration>
             </plugin>
