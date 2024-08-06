@@ -120,6 +120,7 @@ public class HDFSWrite implements AutoCloseable {
             // enable kerberus
             conf.set("hadoop.security.authentication", config.getHadoopAuthentication());
             conf.set("hadoop.security.authorization", config.getHadoopAuthorization());
+            conf.set("hadoop.kerberos.keytab.login.autorenewal.enabled", "true");
 
             conf.set("fs.defaultFS", hdfsuri); // Set FileSystem URI
             conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName()); // Maven stuff?
