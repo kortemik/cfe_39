@@ -47,9 +47,9 @@ package com.teragrep.cfe_39.consumers.kafka;
 
 import com.google.gson.JsonObject;
 import com.teragrep.cfe_39.Config;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +66,7 @@ public class HDFSWrite implements AutoCloseable {
     private final String path;
     private final FileSystem fs;
     private final boolean useMockKafkaConsumer; // Defines if mock HDFS database is used for testing
-    private final Configuration conf;
+    private final HdfsConfiguration conf;
     private final String hdfsuri;
 
     public HDFSWrite(Config config, JsonObject lastObjectJo) throws IOException {
@@ -86,7 +86,7 @@ public class HDFSWrite implements AutoCloseable {
             fileName = lastObjectJo.get("partition").getAsString() + "." + lastObjectJo.get("offset").getAsString(); // filename should be constructed from partition and offset.
 
             // ====== Init HDFS File System Object
-            conf = new Configuration();
+            conf = new HdfsConfiguration();
             // Set FileSystem URI
             conf.set("fs.defaultFS", hdfsuri);
             // Because of Maven
@@ -115,7 +115,7 @@ public class HDFSWrite implements AutoCloseable {
             System.setProperty("java.security.krb5.realm", config.getKerberosRealm());
             System.setProperty("java.security.krb5.kdc", config.getKerberosHost());
 
-            conf = new Configuration();
+            conf = new HdfsConfiguration();
 
             // enable kerberus
             conf.set("hadoop.security.authentication", config.getHadoopAuthentication());

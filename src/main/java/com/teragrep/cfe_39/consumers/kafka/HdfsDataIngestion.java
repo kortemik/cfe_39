@@ -48,10 +48,10 @@ package com.teragrep.cfe_39.consumers.kafka;
 import com.teragrep.cfe_39.Config;
 import com.teragrep.cfe_39.metrics.*;
 import com.teragrep.cfe_39.metrics.topic.TopicCounter;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
@@ -96,7 +96,7 @@ public class HdfsDataIngestion {
             // Initializing the FileSystem with minicluster.
             String hdfsuri = config.getHdfsuri();
             // ====== Init HDFS File System Object
-            Configuration conf = new Configuration();
+            HdfsConfiguration conf = new HdfsConfiguration();
             // Set FileSystem URI
             conf.set("fs.defaultFS", hdfsuri);
             // Because of Maven
@@ -119,7 +119,7 @@ public class HdfsDataIngestion {
             // set kerberos host and realm
             System.setProperty("java.security.krb5.realm", config.getKerberosRealm());
             System.setProperty("java.security.krb5.kdc", config.getKerberosHost());
-            Configuration conf = new Configuration();
+            HdfsConfiguration conf = new HdfsConfiguration();
             // enable kerberus
             conf.set("hadoop.security.authentication", config.getHadoopAuthentication());
             conf.set("hadoop.security.authorization", config.getHadoopAuthorization());
