@@ -123,7 +123,7 @@ public class HdfsDataIngestion {
             // enable kerberus
             conf.set("hadoop.security.authentication", config.getHadoopAuthentication());
             conf.set("hadoop.security.authorization", config.getHadoopAuthorization());
-            conf.set("hadoop.kerberos.keytab.login.autorenewal.enabled", "true");
+            conf.set("hadoop.kerberos.keytab.login.autorenewal.enabled", config.getKerberosLoginAutorenewal());
             conf.set("fs.defaultFS", hdfsuri); // Set FileSystem URI
             conf.set("fs.hdfs.impl", DistributedFileSystem.class.getName()); // Maven stuff?
             conf.set("fs.file.impl", LocalFileSystem.class.getName()); // Maven stuff?
@@ -142,7 +142,7 @@ public class HdfsDataIngestion {
         hdfsStartOffsets = new HashMap<>();
     }
 
-    public void run() throws InterruptedException {
+    public void run() throws InterruptedException, IOException {
 
         // Initialize and register duration statistics
         DurationStatistics durationStatistics = new DurationStatistics();
@@ -161,6 +161,9 @@ public class HdfsDataIngestion {
         }
 
         while (keepRunning) {
+            if ("kerberos".equals(config.getHadoopAuthentication())) {
+                UserGroupInformation.getLoginUser().checkTGTAndReloginFromKeytab();
+            }
             LOGGER.debug("Scanning for threads");
             topicScan(durationStatistics, topicCounters);
 

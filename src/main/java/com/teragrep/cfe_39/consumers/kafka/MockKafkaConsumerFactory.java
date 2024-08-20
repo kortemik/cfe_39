@@ -228,6 +228,27 @@ public class MockKafkaConsumerFactory {
                                         .getBytes(StandardCharsets.UTF_8)
                         )
                 );
+        consumer
+                .addRecord(
+                        new ConsumerRecord<>(
+                                topicName,
+                                partition,
+                                14L,
+                                "2022-04-25T07:34:52.244Z".getBytes(StandardCharsets.UTF_8),
+                                null
+                        )
+                );
+        consumer
+                .addRecord(
+                        new ConsumerRecord<>(
+                                topicName,
+                                partition,
+                                15L,
+                                "2022-04-25T07:34:52.245Z".getBytes(StandardCharsets.UTF_8),
+                                "12>1 2022-04-25T07:34:52.245Z jla-02.default jla02logger - - [origin@48577 hostname=\"jla-02.default\"][event_id@48577 hostname=\"jla-02.default\" uuid=\"3bb55ce4-0ea7-413a-b403-28b174d7ac99\" source=\"source\" unixtime=\"1650872092243\"][event_format@48577 original_format=\"rfc5424\"][event_node_relay@48577 hostname=\"cfe-06-0.cfe-06.default\" source=\"kafka-4.kafka.default.svc.cluster.local\" source_module=\"imrelp\"][event_version@48577 major=\"2\" minor=\"2\" hostname=\"cfe-06-0.cfe-06.default\" version_source=\"relay\"][event_node_router@48577 source=\"cfe-06-0.cfe-06.default.svc.cluster.local\" source_module=\"imrelp\" hostname=\"cfe-07-0.cfe-07.default\"][teragrep@48577 streamname=\"test:jla02logger:0\" directory=\"jla02logger\" unixtime=\"1650872092\"] 25.04.2022 07:34:52.243 [ERROR] com.teragrep.jla_02.Log4j2 [instanceId=01, thread=Thread-0, userId=, sessionId=, requestId=, SUBJECT=, VERB=, OBJECT=, OUTCOME=, message=Log4j2 error metric says hi!]"
+                                        .getBytes(StandardCharsets.UTF_8)
+                        )
+                );
     }
 
     // Can initialize topic scan with all partitions available when the input parameter is 0. Consumer is manually assigned to specific partitions depending on the threadnum parameter. For example on threadnum 1 consumer has odd numbered partitions assigned to it and threadnum 2 has the even numbered partitions.

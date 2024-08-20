@@ -73,10 +73,13 @@ public class Config {
     private final String hadoopAuthorization;
     private final String kerberosKeytabUser;
     private final String kerberosKeytabPath;
+    private final String kerberosLoginAutorenewal;
     private final String kerberosTestMode;
     private long maximumFileSize;
     private final int numOfConsumers;
     private final long pruneOffset;
+    private final boolean skipNonRFC5424Records;
+    private final boolean skipEmptyRFC5424Records;
 
     public Config() throws IOException {
         Properties properties = new Properties();
@@ -138,11 +141,23 @@ public class Config {
         if (this.kerberosKeytabPath == null) {
             throw new IllegalArgumentException("kerberosKeytabPath not set");
         }
+        this.kerberosLoginAutorenewal = properties.getProperty("kerberosLoginAutorenewal");
+        if (this.kerberosLoginAutorenewal == null) {
+            throw new IllegalArgumentException("kerberosLoginAutorenewal not set");
+        }
         this.kerberosTestMode = properties.getProperty("dfs.client.use.datanode.hostname", "false");
 
         // kafka
         this.queueTopicPattern = properties.getProperty("queueTopicPattern", "^.*$");
         this.numOfConsumers = Integer.parseInt(properties.getProperty("numOfConsumers", "1"));
+
+        // skip non RFC5424 records
+        this.skipNonRFC5424Records = properties.getProperty("skipNonRFC5424Records", "false").equalsIgnoreCase("true");
+
+        // skip empty RFC5424 records
+        this.skipEmptyRFC5424Records = properties
+                .getProperty("skipEmptyRFC5424Records", "false")
+                .equalsIgnoreCase("true");
 
         this.kafkaConsumerProperties = loadSubProperties(properties, "consumer.");
         String loginConfig = properties
@@ -246,5 +261,17 @@ public class Config {
 
     public long getPruneOffset() {
         return pruneOffset;
+    }
+
+    public boolean getSkipNonRFC5424Records() {
+        return skipNonRFC5424Records;
+    }
+
+    public boolean getSkipEmptyRFC5424Records() {
+        return skipEmptyRFC5424Records;
+    }
+
+    public String getKerberosLoginAutorenewal() {
+        return kerberosLoginAutorenewal;
     }
 }

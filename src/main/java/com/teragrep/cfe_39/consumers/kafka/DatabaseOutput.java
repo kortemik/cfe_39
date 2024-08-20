@@ -95,6 +95,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
     private final SDVector originHostname;
     private File syslogFile;
     private final Config config;
+    private final boolean skipNonRFC5424Records;
+    private final boolean skipEmptyRFC5424Records;
 
     public DatabaseOutput(
             Config config,
@@ -121,6 +123,8 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
         this.eventNodeSourceHostname = new SDVector("event_node_source@48577", "hostname");
         this.eventNodeRelayHostname = new SDVector("event_node_relay@48577", "hostname");
         this.originHostname = new SDVector("origin@48577", "hostname");
+        this.skipNonRFC5424Records = config.getSkipNonRFC5424Records();
+        this.skipEmptyRFC5424Records = config.getSkipEmptyRFC5424Records();
     }
 
     // Checks that the filesize stays under the defined maximum file size. If the file is about to go over target limit commits the file to HDFS and returns true, otherwise does nothing and returns false.
@@ -254,15 +258,36 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             }
 
             byte[] byteArray = recordOffsetObject.getRecord(); // loads the byte[] contained in recordOffsetObject.getRecord() to byteArray.
-            batchBytes = batchBytes + byteArray.length;
+            if (byteArray == null) {
+                if (skipEmptyRFC5424Records) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER
+                                .debug(
+                                        "Skipping processing an empty non RFC5424 record. Record metadata: {}",
+                                        recordOffsetObject.offsetToJSON()
+                                );
+                    }
+                    continue;
+                }
+                else {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Null record metadata: {}", recordOffsetObject.offsetToJSON());
+                    }
+                    syslogFile.delete(); // Clean up
+                    throw new NullPointerException("Record with null content detected during processing.");
+                }
+
+            }
             InputStream inputStream = new ByteArrayInputStream(byteArray);
             rfc5424Frame.load(inputStream);
             try {
                 if (rfc5424Frame.next()) {
-                    /*                     rfc5424Frame has loaded the record data, it's ready for deserialization.
+                    /*rfc5424Frame has loaded the record data, it's ready for deserialization.
                       Implement AVRO serialization for the Kafka records here, preparing the data for writing to HDFS.
                       Write all the data into a file using AVRO.
                       The size of each AVRO-serialized file should be as close to 64M as possible.*/
+
+                    batchBytes = batchBytes + byteArray.length;
 
                     // input
                     final byte[] source = eventToSource();
@@ -322,6 +347,29 @@ public class DatabaseOutput implements Consumer<List<RecordOffset>> {
             }
             catch (IOException e) {
                 throw new UncheckedIOException(e);
+            }
+            catch (ParseException e) {
+                if (skipNonRFC5424Records) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER
+                                .debug(
+                                        "Skipping processing a non RFC5424 record, record metadata: {}. Exception information: ",
+                                        recordOffsetObject.offsetToJSON(), e
+                                );
+                    }
+                    continue;
+                }
+                else {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER
+                                .debug(
+                                        "Record metadata that is causing ParseException: {}.",
+                                        recordOffsetObject.offsetToJSON()
+                                );
+                    }
+                    syslogFile.delete(); // Clean up
+                    throw new RuntimeException(e);
+                }
             }
         }
 
